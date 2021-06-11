@@ -5,6 +5,7 @@ import xmltodict
 import json
 
 from pptx import Presentation
+from lxml import etree, objectify
 
 
 # unzip a deck
@@ -47,23 +48,6 @@ def copy_rel(src, des):
     print("COPY COMPLETED: ")
 
 
-# handle the deck and select files for output deck
-def deck_handle(id, msg):
-    file_name, slides = msg['d'], msg['s']
-    # unzip the input file
-    unzip(dir_path+'/'+file_name+'.pptx', tmp_path+'/'+file_name)
-    
-    if not os.path.isdir(output_path+'/'+str(render_id)):
-        # copy all the necessary files with folder architecture
-        shutil.copytree(tmp_path+'/'+file_name, output_path+'/'+str(render_id), ignore=ig_d)
-        shutil.copytree(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt', ignore=ig_f)
-        copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
-                       
-    path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
-    add_files(path, file_name, slides)
-    print("TARGET_FILES: ", target)
-
-
 # convert xml to dict
 def xml_to_dict(path):
     with open(path) as xml_file:
@@ -83,9 +67,9 @@ def add_files(path, file_name, slides=[]):
 
     if slides:
         # get total slides
-        prs = Presentation(dir_path+'/'+file_name+'.pptx')
+        prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
+        global tot_slides, first_slide_id
         tot_slides = len(prs.slides._sldIdLst)
-        
         # get rId of first slide
         first_slide = "slide1.xml"
         first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
@@ -115,6 +99,8 @@ def add_files(path, file_name, slides=[]):
                     if os.path.exists(path):
                         add_files(path, file_name)
     print('TARGET: ', target)
+    
+    
     # copy files from tmp loc to output loc
     for i in target:
         if '../' in i:
@@ -122,7 +108,50 @@ def add_files(path, file_name, slides=[]):
         else:
             shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
 
+# copy main relation file for presentation
+def copy_xml_rels(path):
+    # variable assigning
+    global tot_slides, first_slide_id, slides
+    print("SSOO: ", slides)
+    slides_id = ['rId'+str(first_slide_id+i-1) for i in slides]
+    # Passing the path of the xml document to enable the parsing process
+    parser = etree.XMLParser(remove_blank_text=True)
+    tree = etree.parse(path, parser)
+    root = tree.getroot()
+    
+    for relation in root:
+        attrib = relation.attrib
+        # print("REL_ATTR: ", attrib, type(attrib))
+        print("IDDDDDD: ", attrib.get('Id'))
+    
+        if int(attrib.get('Id').split('Id')[1]) >= first_slide_id and int(attrib.get('Id').split('Id')[1])<(first_slide_id+tot_slides):
+            if attrib.get('Id') not in slides_id:
+                root.remove(relation)
+                # output_path+'/'+str(render_id)+'/ppt
+    tree.write(output_path+'/'+str(render_id)+'/ppt/_rels/presentation.xml.rels', pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
+
+# handle the deck and select files for output deck
+def deck_handle(id, msg):
+    global slides
+    file_name, slides = msg['d'], msg['s']
+    # unzip the input file
+    unzip(dir_path+'/presentations/'+file_name+'.pptx', tmp_path+'/'+file_name)
+    
+    if not os.path.isdir(output_path+'/'+str(render_id)):
+        # copy all the necessary files with folder architecture
+        shutil.copytree(tmp_path+'/'+file_name, output_path+'/'+str(render_id), ignore=ig_d)
+        shutil.copytree(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt', ignore=ig_f)
+        copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
+                       
+    path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
+    add_files(path, file_name, slides)
+    # global tot_slides    
+    copy_xml_rels(path)
+    
+    print("TARGET_FILES: ", target)
+    
+    
 if __name__ == '__main__':
     
     dir_path = os.path.dirname(os.path.realpath(__file__))

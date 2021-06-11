@@ -13,7 +13,7 @@ root = tree.getroot()
   
 # getting the parent tag of
 # the xml document
-root = tree.getroot()
+# root = tree.getroot()
   
 # printing the root (parent) tag
 # of the xml document, along with
