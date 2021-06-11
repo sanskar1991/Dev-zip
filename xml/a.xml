@@ -1,0 +1,25 @@
+<app>
+<process>
+<tag>any tag</tag>
+<trigger order="3" name="activity1" perform="y">
+    <external>
+            <action name="check_req"/>
+            <action name="event"/>
+            <action name="ckeck"/>
+        </external>
+        <var name="type"/>
+        <var name="user" />
+          </trigger>
+</process>>
+<process>
+<tag>any tag</tag>
+<trigger order="2" name="activity1" perform="y">
+    <external>
+            <action name="event"/>
+            <action name="ckeck"/>
+        </external>
+        <var name="type"/>
+        <var name="user" />
+          </trigger>
+</process>
+</app>

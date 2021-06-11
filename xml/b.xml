@@ -1,0 +1,188 @@
+<ns0:presentation xmlns:ns0="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:ns1="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:ns2="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:ns3="http://schemas.microsoft.com/office/powerpoint/2010/main" xmlns:ns4="http://schemas.microsoft.com/office/powerpoint/2012/main" saveSubsetFonts="1">
+    <ns0:sldMasterIdLst>
+        <ns0:sldMasterId id="2147483753" ns1:id="rId4" />
+        <ns0:sldMasterId id="2147483789" ns1:id="rId5" />
+        <ns0:sldMasterId id="2147483672" ns1:id="rId6" />
+        <ns0:sldMasterId id="2147483854" ns1:id="rId7" />
+    </ns0:sldMasterIdLst>
+    <ns0:notesMasterIdLst>
+        <ns0:notesMasterId ns1:id="rId36" />
+    </ns0:notesMasterIdLst>
+    <ns0:handoutMasterIdLst>
+        <ns0:handoutMasterId ns1:id="rId37" />
+    </ns0:handoutMasterIdLst>
+    <ns0:sldIdLst>
+        <ns0:sldId id="2209" ns1:id="rId8" />
+        <ns0:sldId id="329" ns1:id="rId9" />
+        <ns0:sldId id="2258" ns1:id="rId10" />
+        <ns0:sldId id="2268" ns1:id="rId11" />
+        <ns0:sldId id="2265" ns1:id="rId12" />
+        
+        <ns0:sldId id="939" ns1:id="rId22" />
+        <ns0:sldId id="2256" ns1:id="rId23" />
+        <ns0:sldId id="2257" ns1:id="rId24" />
+        <ns0:sldId id="2266" ns1:id="rId25" />
+        <ns0:sldId id="921" ns1:id="rId26" />
+        <ns0:sldId id="922" ns1:id="rId27" />
+        <ns0:sldId id="2267" ns1:id="rId28" />
+        <ns0:sldId id="2261" ns1:id="rId29" />
+        <ns0:sldId id="1190" ns1:id="rId30" />
+        <ns0:sldId id="1194" ns1:id="rId31" />
+        <ns0:sldId id="2262" ns1:id="rId32" />
+        <ns0:sldId id="2263" ns1:id="rId33" />
+        <ns0:sldId id="1196" ns1:id="rId34" />
+        <ns0:sldId id="1197" ns1:id="rId35" />
+    </ns0:sldIdLst>
+    <ns0:sldSz cx="12188825" cy="6858000" />
+    <ns0:notesSz cx="6858000" cy="9144000" />
+    <ns0:defaultTextStyle>
+        <ns2:defPPr>
+            <ns2:defRPr lang="en-US" />
+        </ns2:defPPr>
+        <ns2:lvl1pPr marL="0" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl1pPr>
+        <ns2:lvl2pPr marL="609493" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl2pPr>
+        <ns2:lvl3pPr marL="1218987" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl3pPr>
+        <ns2:lvl4pPr marL="1828480" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl4pPr>
+        <ns2:lvl5pPr marL="2437973" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl5pPr>
+        <ns2:lvl6pPr marL="3047467" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl6pPr>
+        <ns2:lvl7pPr marL="3656960" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl7pPr>
+        <ns2:lvl8pPr marL="4266453" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl8pPr>
+        <ns2:lvl9pPr marL="4875947" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+            <ns2:defRPr sz="2400" kern="1200">
+                <ns2:solidFill>
+                    <ns2:schemeClr val="tx1" />
+                </ns2:solidFill>
+                <ns2:latin typeface="+mn-lt" />
+                <ns2:ea typeface="+mn-ea" />
+                <ns2:cs typeface="+mn-cs" />
+            </ns2:defRPr>
+        </ns2:lvl9pPr>
+    </ns0:defaultTextStyle>
+    <ns0:extLst>
+        <ns0:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">
+            <ns3:sectionLst>
+                <ns3:section name="Default Section" id="{D099577E-712D-4EEC-AB96-37F686AB834A}">
+                    <ns3:sldIdLst>
+                        <ns3:sldId id="2209" />
+                        <ns3:sldId id="329" />
+                        <ns3:sldId id="2258" />
+                        <ns3:sldId id="2268" />
+                        <ns3:sldId id="2265" />
+                        <ns3:sldId id="1157" />
+                        <ns3:sldId id="1163" />
+                        <ns3:sldId id="1162" />
+                        <ns3:sldId id="1159" />
+                        <ns3:sldId id="2259" />
+                        <ns3:sldId id="2260" />
+                        <ns3:sldId id="2264" />
+                        <ns3:sldId id="2255" />
+                        <ns3:sldId id="1186" />
+                        <ns3:sldId id="939" />
+                        <ns3:sldId id="2256" />
+                        <ns3:sldId id="2257" />
+                        <ns3:sldId id="2266" />
+                        <ns3:sldId id="921" />
+                        <ns3:sldId id="922" />
+                        <ns3:sldId id="2267" />
+                        <ns3:sldId id="2261" />
+                        <ns3:sldId id="1190" />
+                        <ns3:sldId id="1194" />
+                        <ns3:sldId id="2262" />
+                        <ns3:sldId id="2263" />
+                        <ns3:sldId id="1196" />
+                        <ns3:sldId id="1197" />
+                    </ns3:sldIdLst>
+                </ns3:section>
+            </ns3:sectionLst>
+        </ns0:ext>
+        <ns0:ext uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}">
+            <ns4:sldGuideLst>
+                <ns4:guide id="1" orient="horz" pos="2160" userDrawn="1">
+                    <ns4:clr>
+                        <ns2:srgbClr val="A4A3A4" />
+                    </ns4:clr>
+                </ns4:guide>
+                <ns4:guide id="2" pos="3839" userDrawn="1">
+                    <ns4:clr>
+                        <ns2:srgbClr val="A4A3A4" />
+                    </ns4:clr>
+                </ns4:guide>
+            </ns4:sldGuideLst>
+        </ns0:ext>
+        <ns0:ext uri="{2D200454-40CA-4A62-9FC3-DE9A4176ACB9}">
+            <ns4:notesGuideLst />
+        </ns0:ext>
+    </ns0:extLst>
+</ns0:presentation>

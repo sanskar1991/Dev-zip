@@ -1,0 +1,6 @@
+dicttoxml==1.7.4
+lxml==4.6.3
+Pillow==8.2.0
+python-pptx==0.6.19
+XlsxWriter==1.4.3
+xmltodict==0.12.0
