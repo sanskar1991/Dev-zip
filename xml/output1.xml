@@ -1,9 +1,172 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>
-  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>
-  <Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>
-  <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps" Target="viewProps.xml"/>
-  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/>
-</Relationships>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" saveSubsetFonts="1">
+  <p:sldMasterIdLst>
+    <p:sldMasterId id="2147483753" r:id="rId4"/>
+    <p:sldMasterId id="2147483789" r:id="rId5"/>
+    <p:sldMasterId id="2147483672" r:id="rId6"/>
+    <p:sldMasterId id="2147483854" r:id="rId7"/>
+  </p:sldMasterIdLst>
+  <p:notesMasterIdLst>
+    <p:notesMasterId r:id="rId36"/>
+  </p:notesMasterIdLst>
+  <p:handoutMasterIdLst>
+    <p:handoutMasterId r:id="rId37"/>
+  </p:handoutMasterIdLst>
+  <p:sldIdLst>
+    <p:sldId id="329" r:id="rId9"/>
+    <p:sldId id="2268" r:id="rId11"/>
+    <p:sldId id="1157" r:id="rId13"/>
+  </p:sldIdLst>
+  <p:sldSz cx="12188825" cy="6858000"/>
+  <p:notesSz cx="6858000" cy="9144000"/>
+  <p:defaultTextStyle>
+    <a:defPPr>
+      <a:defRPr lang="en-US"/>
+    </a:defPPr>
+    <a:lvl1pPr marL="0" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl1pPr>
+    <a:lvl2pPr marL="609493" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl2pPr>
+    <a:lvl3pPr marL="1218987" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl3pPr>
+    <a:lvl4pPr marL="1828480" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl4pPr>
+    <a:lvl5pPr marL="2437973" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl5pPr>
+    <a:lvl6pPr marL="3047467" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl6pPr>
+    <a:lvl7pPr marL="3656960" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl7pPr>
+    <a:lvl8pPr marL="4266453" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl8pPr>
+    <a:lvl9pPr marL="4875947" algn="l" defTabSz="609493" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:defRPr sz="2400" kern="1200">
+        <a:solidFill>
+          <a:schemeClr val="tx1"/>
+        </a:solidFill>
+        <a:latin typeface="+mn-lt"/>
+        <a:ea typeface="+mn-ea"/>
+        <a:cs typeface="+mn-cs"/>
+      </a:defRPr>
+    </a:lvl9pPr>
+  </p:defaultTextStyle>
+  <p:extLst>
+    <p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">
+      <p14:sectionLst xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">
+        <p14:section name="Default Section" id="{D099577E-712D-4EEC-AB96-37F686AB834A}">
+          <p14:sldIdLst>
+            <p14:sldId id="2209"/>
+            <p14:sldId id="329"/>
+            <p14:sldId id="2258"/>
+            <p14:sldId id="2268"/>
+            <p14:sldId id="2265"/>
+            <p14:sldId id="1157"/>
+            <p14:sldId id="1163"/>
+            <p14:sldId id="1162"/>
+            <p14:sldId id="1159"/>
+            <p14:sldId id="2259"/>
+            <p14:sldId id="2260"/>
+            <p14:sldId id="2264"/>
+            <p14:sldId id="2255"/>
+            <p14:sldId id="1186"/>
+            <p14:sldId id="939"/>
+            <p14:sldId id="2256"/>
+            <p14:sldId id="2257"/>
+            <p14:sldId id="2266"/>
+            <p14:sldId id="921"/>
+            <p14:sldId id="922"/>
+            <p14:sldId id="2267"/>
+            <p14:sldId id="2261"/>
+            <p14:sldId id="1190"/>
+            <p14:sldId id="1194"/>
+            <p14:sldId id="2262"/>
+            <p14:sldId id="2263"/>
+            <p14:sldId id="1196"/>
+            <p14:sldId id="1197"/>
+          </p14:sldIdLst>
+        </p14:section>
+      </p14:sectionLst>
+    </p:ext>
+    <p:ext uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}">
+      <p15:sldGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">
+        <p15:guide id="1" orient="horz" pos="2160" userDrawn="1">
+          <p15:clr>
+            <a:srgbClr val="A4A3A4"/>
+          </p15:clr>
+        </p15:guide>
+        <p15:guide id="2" pos="3839" userDrawn="1">
+          <p15:clr>
+            <a:srgbClr val="A4A3A4"/>
+          </p15:clr>
+        </p15:guide>
+      </p15:sldGuideLst>
+    </p:ext>
+    <p:ext uri="{2D200454-40CA-4A62-9FC3-DE9A4176ACB9}">
+      <p15:notesGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"/>
+    </p:ext>
+  </p:extLst>
+</p:presentation>

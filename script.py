@@ -98,7 +98,7 @@ def add_files(path, file_name, slides=[]):
                     path = tmp_path+'/'+file_name+"/ppt/"+i['@Target'].split('..')[1].split('/')[1]+"/_rels/"+i['@Target'].split('..')[1].split('/')[2]+".rels"
                     if os.path.exists(path):
                         add_files(path, file_name)
-    print('TARGET: ', target)
+    # print('TARGET: ', target)
     
     
     # copy files from tmp loc to output loc
@@ -108,27 +108,54 @@ def add_files(path, file_name, slides=[]):
         else:
             shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
 
-# copy main relation file for presentation
-def copy_xml_rels(path):
+
+# copy main relation and xml of presentation
+def copy_prep_xml(path):
     # variable assigning
     global tot_slides, first_slide_id, slides
-    print("SSOO: ", slides)
+    # print("SSOO: ", slides)
     slides_id = ['rId'+str(first_slide_id+i-1) for i in slides]
-    # Passing the path of the xml document to enable the parsing process
-    parser = etree.XMLParser(remove_blank_text=True)
-    tree = etree.parse(path, parser)
-    root = tree.getroot()
     
+    # Setting up the paths for xml and rels file
+    rels_path = path+'_rels/presentation.xml.rels'
+    xml_path = path+'presentation.xml'
+    
+    # Passing the path of the xml document to enable the parsing process
+    # for rels file
+    parser = etree.XMLParser(remove_blank_text=True)
+    tree = etree.parse(rels_path, parser)
+    root = tree.getroot()
+
     for relation in root:
         attrib = relation.attrib
         # print("REL_ATTR: ", attrib, type(attrib))
-        print("IDDDDDD: ", attrib.get('Id'))
-    
+        # print("IDDDDDD: ", attrib.get('Id'))
+
         if int(attrib.get('Id').split('Id')[1]) >= first_slide_id and int(attrib.get('Id').split('Id')[1])<(first_slide_id+tot_slides):
             if attrib.get('Id') not in slides_id:
                 root.remove(relation)
-                # output_path+'/'+str(render_id)+'/ppt
     tree.write(output_path+'/'+str(render_id)+'/ppt/_rels/presentation.xml.rels', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    
+    # Passing the path of the xml document to enable the parsing process
+    # for XML file
+    parser = etree.XMLParser(remove_blank_text=True)
+    tree = etree.parse(xml_path, parser)
+    root = tree.getroot()
+    for relation in root:
+        for ele in relation:
+            try:
+                rId = int(ele.attrib.values()[-1].split('Id')[-1])
+                # rId = int(str_rId)
+                # print("rID: ", rId)
+                if rId>=first_slide_id and rId<(first_slide_id+tot_slides):
+                    # print("GGG")
+                    if 'rId'+str(rId) not in slides_id:
+                        # print("IDZZ: ", 'rId'+str(rId))
+                        relation.remove(ele)
+            except:
+                pass
+        tree.write(output_path+'/'+str(render_id)+'/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        
 
 
 # handle the deck and select files for output deck
@@ -145,11 +172,11 @@ def deck_handle(id, msg):
         copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
                        
     path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
-    add_files(path, file_name, slides)
-    # global tot_slides    
-    copy_xml_rels(path)
+    add_files(path, file_name, slides)   
+    prep_path = tmp_path+'/'+file_name+'/ppt/'
+    copy_prep_xml(prep_path)
     
-    print("TARGET_FILES: ", target)
+    print("TARGET", target)
     
     
 if __name__ == '__main__':
