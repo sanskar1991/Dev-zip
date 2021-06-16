@@ -6,24 +6,11 @@ import json
 
 from pptx import Presentation
 from lxml import etree, objectify
+from zip_unzip import unzip, zipdir
+from copy_files import copy_rel, xml_to_dict, copy_mandatory
 
 
-# unzip a deck
-def unzip(file_path, unzip_path):
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        zip_ref.extractall(unzip_path)
-
-
-# zip extracted deck to get output deck
-def zipdir(path):
-    length = len(path)
-    zipf = zipfile.ZipFile('Testing1.pptx', 'w', zipfile.ZIP_DEFLATED)
-    for root, dirs, files in os.walk(path):
-        folder = root[length:] # path without "parent"
-        for file in files:
-            zipf.write(os.path.join(root, file), os.path.join(folder, file))
-    zipf.close()
-
+# zip_unzip.py
 
 # filter ppt folder
 def ig_d(dir, files):
@@ -36,32 +23,20 @@ def ig_f(dir, files):
     
 
 # copy all rel files
-def copy_rel(src, des):
-    for x in os.walk(src):
-        folder = x[0].split('ppt')[1]
-        if folder and '_rels' in folder and 'slides' not in folder:
-            print("SRC: ", src+folder, "\nDES: ", des+folder)
-            if os.path.exists(des+folder):
-                shutil.rmtree(des+folder)
-            shutil.copytree(src+folder, des+folder)
-    
-    print("COPY COMPLETED: ")
+# def copy_rel(src, des):
 
+
+# copy mandatory files
+# def copy_mandatory(src, des):
+    
 
 # convert xml to dict
-def xml_to_dict(path):
-    with open(path) as xml_file:
-        data_dict = xmltodict.parse(xml_file.read())
-        xml_file.close()
-    if isinstance(data_dict["Relationships"]["Relationship"], list):
-        data = sorted(data_dict["Relationships"]["Relationship"], key=lambda item: int(item['@Id'].split('Id')[1]))
-    else:
-        data = [data_dict["Relationships"]["Relationship"]]
-    return data
+# def xml_to_dict(path):
 
 
 # add files from input deck to output deck
 def add_files(path, file_name, slides=[]):
+    print("ADD_FILES CALLING..", file_name)
     global target
     data = xml_to_dict(path)
 
@@ -80,8 +55,6 @@ def add_files(path, file_name, slides=[]):
             if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
                 files.append(i['@Target'])
         
-        print("FILESSSS: ", files)
-        
         target = target + files
         for id in slides:
             slide = "slide"+str(id)+'.xml'
@@ -93,24 +66,25 @@ def add_files(path, file_name, slides=[]):
             if i["@Target"] in target:
                 pass
             elif "http" not in i["@Target"]:
+                # print("This time: ", i["@Target"])
                 target.append(i['@Target'])
                 if ".." in i['@Target'] and "xml" in i['@Target']:
                     path = tmp_path+'/'+file_name+"/ppt/"+i['@Target'].split('..')[1].split('/')[1]+"/_rels/"+i['@Target'].split('..')[1].split('/')[2]+".rels"
                     if os.path.exists(path):
                         add_files(path, file_name)
-    # print('TARGET: ', target)
     
-    
-    # copy files from tmp loc to output loc
+    # copy files from tmp dir to output dir
     for i in target:
         if '../' in i:
-            shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
+            if os.path.exists(tmp_path+'/'+file_name+'/ppt/'+i[3:]):
+                shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
         else:
             shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
-
+        
 
 # copy main relation and xml of presentation
 def copy_prep_xml(path):
+    print("COPY_PREP_XML CALLIMG...")
     # variable assigning
     global tot_slides, first_slide_id, slides
     # print("SSOO: ", slides)
@@ -126,10 +100,9 @@ def copy_prep_xml(path):
     tree = etree.parse(rels_path, parser)
     root = tree.getroot()
 
+    # iterating root
     for relation in root:
         attrib = relation.attrib
-        # print("REL_ATTR: ", attrib, type(attrib))
-        # print("IDDDDDD: ", attrib.get('Id'))
 
         if int(attrib.get('Id').split('Id')[1]) >= first_slide_id and int(attrib.get('Id').split('Id')[1])<(first_slide_id+tot_slides):
             if attrib.get('Id') not in slides_id:
@@ -145,17 +118,14 @@ def copy_prep_xml(path):
         for ele in relation:
             try:
                 rId = int(ele.attrib.values()[-1].split('Id')[-1])
-                # rId = int(str_rId)
-                # print("rID: ", rId)
                 if rId>=first_slide_id and rId<(first_slide_id+tot_slides):
                     # print("GGG")
                     if 'rId'+str(rId) not in slides_id:
-                        # print("IDZZ: ", 'rId'+str(rId))
                         relation.remove(ele)
             except:
                 pass
         tree.write(output_path+'/'+str(render_id)+'/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
-        
+    print("COMPLETED!!1")
 
 
 # handle the deck and select files for output deck
@@ -164,17 +134,28 @@ def deck_handle(id, msg):
     file_name, slides = msg['d'], msg['s']
     # unzip the input file
     unzip(dir_path+'/presentations/'+file_name+'.pptx', tmp_path+'/'+file_name)
-    
+    print("333")
     if not os.path.isdir(output_path+'/'+str(render_id)):
+        print("444")
         # copy all the necessary files with folder architecture
         shutil.copytree(tmp_path+'/'+file_name, output_path+'/'+str(render_id), ignore=ig_d)
         shutil.copytree(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt', ignore=ig_f)
+    
+    path = tmp_path+'/'+file_name+'/ppt/'
+    rels_path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
+    
+    if slides:
+        add_files(rels_path, file_name, slides)
         copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
-                       
-    path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
-    add_files(path, file_name, slides)   
-    prep_path = tmp_path+'/'+file_name+'/ppt/'
-    copy_prep_xml(prep_path)
+        copy_mandatory(tmp_path+'/'+file_name+'/ppt/', output_path+'/'+str(render_id)+'/ppt/')
+        copy_prep_xml(path)
+        zipdir( output_path+'/41/', file_name)
+    else:
+        o_prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
+        o_prs.save('output/'+f'Test_{file_name}.pptx') 
+    
+    # remove output/41
+    shutil.rmtree(output_path+'/'+str(render_id))
     
     print("TARGET", target)
     
@@ -186,11 +167,12 @@ if __name__ == '__main__':
     target = []
     
     # load the message
-    # file = open('sample_input.json')
-    # sample_msg = json.load(file)
-    # file.close()
+    file = open('sample_input.json')
+    sample_msg = json.load(file)
+    file.close()
     # sample_msg = [41,{'d': 'Onboarding_1','s':  [2,4,6]}]
-    sample_msg = [41,{'d': 'Presentation1','s':  [1]}]
+    # sample_msg = [41,{'d': 'Presentation1','s':  [1]}]
+    # sample_msg = [41,{'d': 'BI Case Studies','s':  [2, 3]}]
 
     render_id = sample_msg[0]
     output_path = "{}/output".format(dir_path)
@@ -211,7 +193,7 @@ if __name__ == '__main__':
     # zipdir( tmp_path+'/Onboarding_1')
     # zipdir( tmp_path+'/Presentation1')
     # zipdir( output_path+'/Onboarding_1')
-    zipdir( output_path+'/41/')
+    # zipdir( output_path+'/41/')
     
     # remove tmp
     # shutil.rmtree('./tmp')
