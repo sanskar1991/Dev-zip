@@ -36,7 +36,6 @@ def ig_f(dir, files):
 
 # add files from input deck to output deck
 def add_files(path, file_name, slides=[]):
-    print("ADD_FILES CALLING..", file_name)
     global target
     data = xml_to_dict(path)
 
@@ -128,15 +127,35 @@ def copy_prep_xml(path):
     print("COMPLETED!!1")
 
 
+def new (ft) :
+    """
+    create, move and unzip the empty output deck
+    """
+    fq_empty = "resources/Empty.pptx"
+    # create
+    prs = Presentation()
+    prs.save(fq_empty)
+    # move
+    d = ".".join ([ft, "pptx"]) # "output/410.pptx"
+    shutil.move (fq_empty, d)
+    # unzip
+    unpack (d)
+    return
+
+
 # handle the deck and select files for output deck
 def deck_handle(id, msg):
     global slides
     file_name, slides = msg['d'], msg['s']
+    
+    # create empty output deck, move and unzip it
+    new(f'output/{render_id}0') # output/410
+    # unzip(output_path+'/'+emp_file_name, output_path+'/'+file_name)
+    
     # unzip the input file
     unzip(dir_path+'/presentations/'+file_name+'.pptx', tmp_path+'/'+file_name)
-    print("333")
+    
     if not os.path.isdir(output_path+'/'+str(render_id)):
-        print("444")
         # copy all the necessary files with folder architecture
         shutil.copytree(tmp_path+'/'+file_name, output_path+'/'+str(render_id), ignore=ig_d)
         shutil.copytree(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt', ignore=ig_f)
@@ -149,15 +168,15 @@ def deck_handle(id, msg):
         copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
         copy_mandatory(tmp_path+'/'+file_name+'/ppt/', output_path+'/'+str(render_id)+'/ppt/')
         copy_prep_xml(path)
-        zipdir( output_path+'/41/', file_name)
+        # zipdir( output_path+'/41/', file_name)
     else:
         o_prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
-        o_prs.save('output/'+f'Test_{file_name}.pptx') 
+        # o_prs.save('output/'+f'Test_{file_name}.pptx')
     
     # remove output/41
     shutil.rmtree(output_path+'/'+str(render_id))
     
-    print("TARGET", target)
+    # print("TARGET", target)
     
     
 if __name__ == '__main__':
@@ -174,7 +193,7 @@ if __name__ == '__main__':
     # sample_msg = [41,{'d': 'Presentation1','s':  [1]}]
     # sample_msg = [41,{'d': 'BI Case Studies','s':  [2, 3]}]
 
-    render_id = sample_msg[0]
+    render_id = sample_msg.pop(0)
     output_path = "{}/output".format(dir_path)
     tmp_path = "{}/tmp/{}".format(dir_path, render_id)
     print("TMP_PATH:", tmp_path, '\nOUT_PATH: ', output_path)   
@@ -186,14 +205,7 @@ if __name__ == '__main__':
         print("DIR ALREADY EXIST")
     
     # iterating all the messages
-    for i in range(1,len(sample_msg)):
-        deck_handle(render_id, sample_msg[i])
-
-    # zip the output deck folders
-    # zipdir( tmp_path+'/Onboarding_1')
-    # zipdir( tmp_path+'/Presentation1')
-    # zipdir( output_path+'/Onboarding_1')
-    # zipdir( output_path+'/41/')
-    
-    # remove tmp
-    # shutil.rmtree('./tmp')
+    while sample_msg:
+        deck_handle(render_id, sample_msg.pop(0))
+    # for i in range(1,len(sample_msg)):
+    #     deck_handle(render_id, sample_msg[i])

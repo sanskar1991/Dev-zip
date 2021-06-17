@@ -11,7 +11,7 @@ def copy_rel(src, des):
         folder = x[0].split('ppt')[1]
         # print("FOLDER: ", folder)
         if folder and '_rels' in folder and 'slides' not in folder:
-            print("SRC: ", src+folder, "\nDES: ", des+folder)
+            # print("SRC: ", src+folder, "\nDES: ", des+folder)
             if os.path.exists(des+folder):
                 shutil.rmtree(des+folder)
             shutil.copytree(src+folder, des+folder)
