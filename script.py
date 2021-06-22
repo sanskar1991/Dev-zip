@@ -46,6 +46,48 @@ def add_files(path, file_name, slides=[]):
     global target
     data = xml_to_dict(path)
 
+    if slides:
+        # get total slides
+        prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
+        global tot_slides, first_slide_id
+        tot_slides = len(prs.slides._sldIdLst)
+        # get rId of first slide
+        first_slide = "slide1.xml"
+        first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
+        
+        files = []
+        for i in data:
+            current_rId = int(i['@Id'].split('Id')[1])
+            if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
+                files.append(i['@Target'])
+        
+        target = target + files
+        for id in slides:
+            slide = "slide"+str(id)+'.xml'
+            target.append([i["@Target"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
+            shutil.copy(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", output_path+'/'+str(render_id)+'/ppt/slides/_rels/')
+            add_files(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels",file_name)
+    else:
+        for i in data:
+            if i["@Target"] in target:
+                pass
+            elif "http" not in i["@Target"]:
+                # print("This time: ", i["@Target"])
+                target.append(i['@Target'])
+                if ".." in i['@Target'] and "xml" in i['@Target']:
+                    path = tmp_path+'/'+file_name+"/ppt/"+i['@Target'].split('..')[1].split('/')[1]+"/_rels/"+i['@Target'].split('..')[1].split('/')[2]+".rels"
+                    if os.path.exists(path):
+                        add_files(path, file_name)
+    
+    # copy files from tmp dir to output dir
+    for i in target:
+        if '../' in i:
+            if os.path.exists(tmp_path+'/'+file_name+'/ppt/'+i[3:]):
+                shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
+        else:
+            shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
+        
+
       
 
 def copy_prep_xml(path):
@@ -135,11 +177,11 @@ def deck_handle(id, msg):
         copy_rel(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt')
         copy_mandatory(tmp_path+'/'+file_name+'/ppt/', output_path+'/'+str(render_id)+'/ppt/')
         copy_prep_xml(path)
-        # zipdir( output_path+'/41/', file_name)
+        zipdir( output_path+'/41/', file_name)
         
     else:
         o_prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
-        # o_prs.save('output/'+f'Test_{file_name}.pptx')
+        o_prs.save('output/'+f'Test_{file_name}.pptx')
     print("TARGET: ", target)
     # remove output/41
     # shutil.rmtree(output_path+'/'+str(render_id))
@@ -173,8 +215,9 @@ if __name__ == '__main__':
         print("DIR ALREADY EXIST")
     
     # iterating all the messages
-    while sample_msg:
-        deck_handle(render_id, sample_msg.pop(0))
+    # while sample_msg:
+    #     deck_handle(render_id, sample_msg.pop(0))
     # for i in range(1,len(sample_msg)):
     #     deck_handle(render_id, sample_msg[i])
+    zipdir(output_path+'/'+'41', 'Testing')
 
