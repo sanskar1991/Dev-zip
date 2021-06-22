@@ -12,13 +12,18 @@ from copy_files import copy_rel, xml_to_dict, copy_mandatory
 
 # zip_unzip.py
 
-# filter ppt folder
+
 def ig_d(dir, files):
+    """
+    filter ppt folder
+    """
     return [f for f in files if f=='ppt']
 
 
-# filter all files
 def ig_f(dir, files):
+    """
+    filter all files
+    """
     return [f for f in files if os.path.isfile(os.path.join(dir, f))]
     
 
@@ -34,59 +39,21 @@ def ig_f(dir, files):
 # def xml_to_dict(path):
 
 
-# add files from input deck to output deck
 def add_files(path, file_name, slides=[]):
+    """
+    add files from input deck to output deck
+    """
     global target
     data = xml_to_dict(path)
 
-    if slides:
-        # get total slides
-        prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
-        global tot_slides, first_slide_id
-        tot_slides = len(prs.slides._sldIdLst)
-        # get rId of first slide
-        first_slide = "slide1.xml"
-        first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
-        
-        files = []
-        for i in data:
-            current_rId = int(i['@Id'].split('Id')[1])
-            if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
-                files.append(i['@Target'])
-        
-        target = target + files
-        for id in slides:
-            slide = "slide"+str(id)+'.xml'
-            target.append([i["@Target"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
-            shutil.copy(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", output_path+'/'+str(render_id)+'/ppt/slides/_rels/')
-            add_files(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels",file_name)
-    else:
-        for i in data:
-            if i["@Target"] in target:
-                pass
-            elif "http" not in i["@Target"]:
-                # print("This time: ", i["@Target"])
-                target.append(i['@Target'])
-                if ".." in i['@Target'] and "xml" in i['@Target']:
-                    path = tmp_path+'/'+file_name+"/ppt/"+i['@Target'].split('..')[1].split('/')[1]+"/_rels/"+i['@Target'].split('..')[1].split('/')[2]+".rels"
-                    if os.path.exists(path):
-                        add_files(path, file_name)
-    
-    # copy files from tmp dir to output dir
-    for i in target:
-        if '../' in i:
-            if os.path.exists(tmp_path+'/'+file_name+'/ppt/'+i[3:]):
-                shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
-        else:
-            shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
-        
+      
 
-# copy main relation and xml of presentation
 def copy_prep_xml(path):
+    """
+    copy main relationship and xml file of the deck
+    """
     print("COPY_PREP_XML CALLIMG...")
-    # variable assigning
     global tot_slides, first_slide_id, slides
-    # print("SSOO: ", slides)
     slides_id = ['rId'+str(first_slide_id+i-1) for i in slides]
     
     # Setting up the paths for xml and rels file
@@ -139,26 +106,26 @@ def new (ft) :
     d = ".".join ([ft, "pptx"]) # "output/410.pptx"
     shutil.move (fq_empty, d)
     # unzip
-    unpack (d)
+    unzip (d, d.split('.')[0])
     return
 
 
-# handle the deck and select files for output deck
 def deck_handle(id, msg):
+    """
+    handle the deck and select files for output deck
+    """
     global slides
     file_name, slides = msg['d'], msg['s']
-    
-    # create empty output deck, move and unzip it
-    new(f'output/{render_id}0') # output/410
-    # unzip(output_path+'/'+emp_file_name, output_path+'/'+file_name)
-    
-    # unzip the input file
+    output_file_loc = f'output/{render_id}'
+    # new(output_file_loc)
+
+    # unzip the input deck
     unzip(dir_path+'/presentations/'+file_name+'.pptx', tmp_path+'/'+file_name)
     
-    if not os.path.isdir(output_path+'/'+str(render_id)):
+    if not os.path.isdir(f'{output_path}/{str(render_id)}'):
         # copy all the necessary files with folder architecture
-        shutil.copytree(tmp_path+'/'+file_name, output_path+'/'+str(render_id), ignore=ig_d)
-        shutil.copytree(tmp_path+'/'+file_name+'/ppt', output_path+'/'+str(render_id)+'/ppt', ignore=ig_f)
+        shutil.copytree(f'{tmp_path}/{file_name}', f'{output_path}/{str(render_id)}', ignore=ig_d)
+        shutil.copytree(f'{tmp_path}/{file_name}/ppt', f'{output_path}/{str(render_id)}/ppt', ignore=ig_f)
     
     path = tmp_path+'/'+file_name+'/ppt/'
     rels_path = tmp_path+'/'+file_name+'/ppt/_rels/presentation.xml.rels'
@@ -169,12 +136,13 @@ def deck_handle(id, msg):
         copy_mandatory(tmp_path+'/'+file_name+'/ppt/', output_path+'/'+str(render_id)+'/ppt/')
         copy_prep_xml(path)
         # zipdir( output_path+'/41/', file_name)
+        
     else:
         o_prs = Presentation(dir_path+'/presentations/'+file_name+'.pptx')
         # o_prs.save('output/'+f'Test_{file_name}.pptx')
-    
+    print("TARGET: ", target)
     # remove output/41
-    shutil.rmtree(output_path+'/'+str(render_id))
+    # shutil.rmtree(output_path+'/'+str(render_id))
     
     # print("TARGET", target)
     
@@ -186,10 +154,10 @@ if __name__ == '__main__':
     target = []
     
     # load the message
-    file = open('sample_input.json')
-    sample_msg = json.load(file)
-    file.close()
-    # sample_msg = [41,{'d': 'Onboarding_1','s':  [2,4,6]}]
+    # file = open('sample_input.json')
+    # sample_msg = json.load(file)
+    # file.close()
+    sample_msg = [41,{'d': 'Onboarding','s':  [2,4,6]}]
     # sample_msg = [41,{'d': 'Presentation1','s':  [1]}]
     # sample_msg = [41,{'d': 'BI Case Studies','s':  [2, 3]}]
 
@@ -199,8 +167,8 @@ if __name__ == '__main__':
     print("TMP_PATH:", tmp_path, '\nOUT_PATH: ', output_path)   
 
     try:
-        os.makedirs(tmp_path)
         os.makedirs(output_path)
+        os.makedirs(tmp_path)
     except:
         print("DIR ALREADY EXIST")
     
@@ -209,3 +177,4 @@ if __name__ == '__main__':
         deck_handle(render_id, sample_msg.pop(0))
     # for i in range(1,len(sample_msg)):
     #     deck_handle(render_id, sample_msg[i])
+
