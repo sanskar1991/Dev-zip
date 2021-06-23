@@ -7,7 +7,31 @@ import json
 from pptx import Presentation
 from lxml import etree, objectify
 from collections import OrderedDict
-from zip_unzip import unzip, zipdir
+# from zip_unzip import unzip, zipdir
+# from first_deck import copy_mandatory, copy_rel, copy_prep_xml
+
+
+def unzip(file_path, unzip_path):
+    """
+    unzip the deck
+    """
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        zip_ref.extractall(unzip_path)
+    return
+
+
+def zipdir(path, file_name):
+    """
+    zip extracted deck to get output deck
+    """
+    length = len(path)
+    zipf = zipfile.ZipFile('output/'+f'Test_{file_name}.pptx', 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(path):
+        folder = root[length:] # path without "parent"
+        for file in files:
+            zipf.write(os.path.join(root, file), os.path.join(folder, file))
+    zipf.close()
+    return
 
 
 def ig_d(dir, files):
@@ -58,16 +82,19 @@ def make_dir(des, file):
     return
 
 
-def first_slide(file_name):
+def first_slide(path):
     """
     returns the first slide rId
     """
-    prs = Presentation(f'{input_decks}/{file_name}.pptx')
-    for i in prs.slides:
-        # print("HELLO: ", i, i.slide_id, i.shapes)
-        pass
-    abc = prs.slides._sldIdLst
-    xml = list(abc)
+    print("CALLING.. First_slide")
+    print("PATH: ", path)
+    root, _ = gen_tree(path)
+
+    slide = 'slide1.xml'
+    for relation in root:
+        attrib = relation.attrib
+        if slide in attrib['Target']:
+            return int(attrib['Id'].split('Id')[-1])
 
 
 def copy_mandatory(src, des):
@@ -99,21 +126,49 @@ def xml_to_dict(path):
     return data
 
 
+def tag(inp_tag, out_tag):
+    """
+    returns a dict of tags
+    """
+    tag_dict = OrderedDict()
+    for i in range(len(inp_tag)):
+        if inp_tag[i] not in out_tag:
+            if i == 0:
+                tag_dict[inp_tag[i]] = [0]
+            else:
+                tag_dict[inp_tag[i]] = [inp_tag[i-1]]
+    return tag_dict
+    
+
+def gen_tree(path):
+    """
+    pass the path of the xml document to enable the parsing process
+    """
+    print("CALLING.. Tree")
+    parser = etree.XMLParser(remove_blank_text=True)
+    tree = etree.parse(path, parser)
+    root = tree.getroot()    
+    return root, tree
+
+
 def add_files(path, file_name, slides=None):
     """
     returns a list of files that needs to be modified in output deck
     """
+    print("CALLING.. Add_files")
     global target_files
     data = xml_to_dict(path)
     if slides:
         global sldIds
         # get total slides
-        prs = Presentation(base_path+'/presentations/'+file_name+'.pptx')
-        tot_slides = len(prs.slides._sldIdLst)
+        # prs = Presentation(f"{base_path}/presentations/{file_name}.pptx")
+        tot_slides = total_slides(f'{input_decks}/{file_name}.pptx')
         # get rId of first slide
-        first_slide = "slide1.xml"
-        first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
-        
+        # f_slide = "slide1.xml"
+        # first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
+        print("111", path)
+        first_slide_id = first_slide(path)
+        print("222")
         files = []
         for i in data:
             current_rId = int(i['@Id'].split('Id')[1])
@@ -126,7 +181,7 @@ def add_files(path, file_name, slides=None):
             sldIds.append([i["@Id"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
             target_files.append([i["@Target"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
             shutil.copy(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", output_path+'/'+str(render_id)+'/ppt/slides/_rels/')
-            add_files(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels",file_name)
+            add_files(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", file_name)
     else:
         for i in data:
             if i["@Target"] in target_files:
@@ -157,10 +212,70 @@ def select_all():
     pass
 
 
-def copy_rel(src, des):
+def total_slides(path):
+    """
+    returns total number of slides
+    """
+    print("CALLING.. total_slides")
+    prs = Presentation(path)
+    tot_slides = len(prs.slides._sldIdLst)
+    return tot_slides
+    
+
+def copy_prep_xml(src, des, tmp_loc, file_name): # f"{tmp_file_loc}/ppt"
+    """
+    copy main relationship and xml file of the deck
+    """
+    print("CALLIMG.. COPY_PREP_XML")
+    # global tot_slides, slides
+    
+    # Setting up the paths for xml and rels file
+    rels_path = f'{src}/_rels/presentation.xml.rels'
+    xml_path = f'{src}/presentation.xml'
+    
+    tot_slides = total_slides(f'{input_decks}/{file_name}.pptx')
+    print("TOT: ", tot_slides)
+    
+    # Passing the path of the xml document to enable the parsing process
+    # for rels file
+    slide_1 = first_slide(rels_path)
+    root, tree = gen_tree(rels_path)
+
+    # iterating root
+    for relation in root:
+        attrib = relation.attrib
+
+        if int(attrib.get('Id').split('Id')[1]) >= slide_1 and int(attrib.get('Id').split('Id')[1])<(slide_1+tot_slides):
+            if attrib.get('Id') not in sldIds:
+                root.remove(relation)
+    tree.write(f'{des}/_rels/presentation.xml.rels', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    
+    # Passing the path of the xml document to enable the parsing process
+    # for XML file
+    root, tree = gen_tree(xml_path)
+    print("ROOT: ", root)
+    for relation in root:
+        for ele in relation:
+            # print("ELE: ", ele, ele.attrib, attrib.values())
+            try:
+                rId = int(ele.attrib.values()[-1].split('Id')[-1])
+                # print("RID: ", rId)
+                if rId>=slide_1 and rId<(slide_1+tot_slides):
+                    # print("GGG")
+                    if 'rId'+str(rId) not in sldIds:
+                        relation.remove(ele)
+            except:
+                pass
+    tree.write(f'{des}/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    print("COMPLETED!!1")
+
+
+def copy_rel(tmp_loc, out_loc, file_name): # f"{tmp_file_loc}/ppt"
     """
     copy all relelationship files
     """
+    src = f'{tmp_loc}/ppt'
+    des = f'{out_loc}/ppt'
     for x in os.walk(src):
         folder = x[0].split('ppt')[1]
         # print("FOLDER: ", folder)
@@ -177,6 +292,7 @@ def copy_rel(src, des):
                 shutil.rmtree(dir[0])
     print("COPY COMPLETED: ")
     copy_mandatory(src, des)
+    copy_prep_xml(src, des, tmp_loc, file_name) # f"{tmp_file_loc}/ppt"
     return
 
 
@@ -208,33 +324,6 @@ def modify(inp_root, out_root, tag_dict, i_tree, o_tree):
     # subtag1.addnext(subtag2)   # Add subtag2 as a following sibling of subtag1
 
     # print( etree.tostring(tag, pretty_print=True))
-
-
-def tag(inp_tag, out_tag):
-    """
-    returns a dict of tags
-    """
-    tag_dict = OrderedDict()
-    for i in range(len(inp_tag)):
-        if inp_tag[i] not in out_tag:
-            if i == 0:
-                tag_dict[inp_tag[i]] = [0]
-            else:
-                tag_dict[inp_tag[i]] = [inp_tag[i-1]]
-    return tag_dict
-    
-
-def tree(src, des):
-    """
-    pass the path of the xml document to enable the parsing process
-    """
-    parser = etree.XMLParser(remove_blank_text=True)
-    inp_tree = etree.parse(src, parser)
-    out_tree = etree.parse(des, parser)
-    inp_root = inp_tree.getroot()
-    out_root = out_tree.getroot()
-    
-    return inp_root, out_root, inp_tree, out_tree
     
 
 def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
@@ -244,7 +333,9 @@ def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
     src_xml = f'{tmp_path}/{file_name}/ppt/presentation.xml'
     des_xml = f'{output_file_loc}/ppt/presentation.xml'
     
-    inp_root, out_root, i_tree, o_tree = tree(src_xml, des_xml)
+    inp_root, inp_tree = gen_tree(src_xml)
+    out_root, out_tree = gen_tree(des_xml)
+    
     print("")
     # for relation in inp_root:
     #     print("FFFF: ", relation.tag, relation.attrib)
@@ -294,20 +385,18 @@ def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
             # except:
             #     pass
                 
-    modify(inp_root, out_root, tag_dict, i_tree, o_tree)
+    modify(inp_root, out_root, tag_dict, inp_tree, out_tree)
     # print("LIS: ", lis)
     return
 
 
-# def first_deck(path, file_name, slides):
-#     """
-#     handle first deck
-#     """
-#     add_files(path, file_name, slides)
-#     copy_rel(f"{tmp_path}/{file_name}/ppt", f"{output_file_loc}/ppt")
+def first_deck(path, tmp_file_loc, file_name, slides):
+    """
+    handle first deck
+    """
+    add_files(path, file_name, slides)
+    copy_rel(tmp_file_loc, output_file_loc, file_name)
     
-    
-
 
 def deck_handle(id, msg, deck):
     """
@@ -316,15 +405,16 @@ def deck_handle(id, msg, deck):
     file_name, slides = msg['d'], msg['s']
     new(output_file_loc)
     make_dir(output_file_loc, file_name)
-    prep_xml_path = f'{tmp_path}/{file_name}/ppt/_rels/presentation.xml.rels'
+    tmp_file_loc = f'{tmp_path}/{file_name}'
+    prep_xml_path = f'{tmp_file_loc}/ppt/_rels/presentation.xml.rels'
     if deck == 1:
-        first_deck(prep_xml_path, file_name, slides)
+        first_deck(prep_xml_path, tmp_file_loc, file_name, slides)
 
     # unzip the input deck
     # unzip(f'{input_decks}/{file_name}.pptx', f'{tmp_path}/{file_name}')
     
     
-    prep_xml_path = f'{tmp_path}/{file_name}/ppt/_rels/presentation.xml.rels'
+    prep_xml_path = f'{tmp_file_loc}/ppt/_rels/presentation.xml.rels'
     # a = add_files(prep_xml_path, file_name, slides)
     # print("TARGET11: ", a)
     # pre_xml(file_name)
@@ -338,8 +428,7 @@ def deck_handle(id, msg, deck):
     # add_files()
     else:
         pass
-        
-    
+           
     
 if __name__ == '__main__':
     
@@ -377,3 +466,4 @@ if __name__ == '__main__':
         deck_handle(render_id, sample_msg.pop(0), deck)
         deck += 1
 
+    zipdir(f'{output_file_loc}', "Test")
