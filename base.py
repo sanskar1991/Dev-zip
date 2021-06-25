@@ -5,7 +5,7 @@ import xmltodict
 import json
 
 from pptx import Presentation
-from lxml import etree, objectify
+from lxml import etree
 from collections import OrderedDict
 # from zip_unzip import unzip, zipdir
 # from first_deck import copy_mandatory, copy_rel, copy_prep_xml
@@ -69,12 +69,12 @@ def make_dir(des, file):
     creates input deck directories which does not exists in the output deck
     """
     for i in os.walk(f'{tmp_path}/{file}'):
-        print("YYY: ", i, i[0])
+        # print("YYY: ", i, i[0])
         loc = f"{output_file_loc}/{i[0].split(f'{file}/')[-1]}"
-        print("LOC: ", loc)
+        # print("LOC: ", loc)
         
         if os.path.exists(loc) and ('ppt' not in loc) and (file not in loc):
-            print("YES")
+            # print("YES")
             shutil.rmtree(f'{output_file_loc}/{i[0].split(file)[-1]}')
             shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
         if not os.path.exists(f'{output_file_loc}/{i[0].split(file)[-1]}'):
@@ -270,6 +270,15 @@ def copy_prep_xml(src, des, tmp_loc, file_name): # f"{tmp_file_loc}/ppt"
     print("COMPLETED!!1")
 
 
+def del_files(rels_fl, last_fl, path):
+    """
+    delete extra files
+    """
+    for i in rels_fl:
+        if i[:-5] not in last_fl:
+            os.remove(f'{path}/{i}')
+
+
 def copy_rel(tmp_loc, out_loc, file_name): # f"{tmp_file_loc}/ppt"
     """
     copy all relelationship files
@@ -290,6 +299,15 @@ def copy_rel(tmp_loc, out_loc, file_name): # f"{tmp_file_loc}/ppt"
         if not dir[2]:
             if os.path.exists(dir[0]):
                 shutil.rmtree(dir[0])
+    last = 0
+    for i in os.walk(des):
+        folder = i[0].split('ppt')[1]
+        if folder and '_rels' in folder:
+            if len(i[2]) != len(last[2]):
+                del_files(i[2], last[2], i[0])
+        last = i
+            
+    
     print("COPY COMPLETED: ")
     copy_mandatory(src, des)
     copy_prep_xml(src, des, tmp_loc, file_name) # f"{tmp_file_loc}/ppt"
