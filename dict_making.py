@@ -13,31 +13,40 @@ def list_files(fld_name, fl_name):
     """
     returns the list of files
     """
+    d1 = OrderedDict()
+    d2 = OrderedDict()
+
+    lst, cnt = 0, 0
     path = f'{output_file_loc}/ppt/{fld_name}'
-    print("PATH: ", path)
-    print("FLD_NAME: ", fld_name)
-    file_list = []
+    
     for i in os.walk(path):
         i[2].sort(key=lambda fname: int(fname.strip(fl_name).split('.')[0]))
-        lst, cnt = rename(i[2], i[0], fl_name)
-        file_list.append(lst)
-    file_list.append(cnt)
-    return file_list
+        lst, cnt = rename(i[2], i[0], fld_name, fl_name)
+        d1.update(lst)
+        d2.update(cnt)
+    return d1, d2
 
 
-def rename(fl_lst, path, fl_name):
+def rename(fl_lst, path, par_fld, fl_name ):
     """
     rename a file
     """
-    file_dict = OrderedDict()
+    d_1 = OrderedDict()
+    d_2 = OrderedDict()
+    
     count = 1
+    
     for i in fl_lst:
+        fld_name = path.split('ppt/')[1]
+        ext = ''.join(pathlib.Path(i).suffixes)
+        # if i != f'{fl_name}{count}{ext}':
         if i != f'{fl_name}{count}':
-            ext = ''.join(pathlib.Path(i).suffixes)
-            file_dict[i] = f'{fl_name}{count}{ext}'
-            os.rename(f'{path}/{i}', f'{path}/{fl_name}{count}{ext}')
+            new_name = f'{fl_name}{count}{ext}'
+            os.rename(f'{path}/{i}', f'{path}/{new_name}')
+            d_1[f'{fld_name}/{i}'] = f'{fld_name}/{new_name}'
         count += 1
-    return file_dict, {"count": count}
+    d_2[par_fld] = count
+    return d_1, d_2
 
 
 def gen_tree(path):
@@ -88,7 +97,71 @@ def update_med(md_dict, name, files):
         root, tree = gen_tree(path)
         md = modify_files(path, root, tree, name, md_dict)
     return md
+
+
+def list_rels():
+    """
+    returns list of all relationship files
+    """
+    rel_list = []
+    for i in os.walk(f'{output_file_loc}/ppt'):
+        fld_name = i[0].split('ppt')[1]
+        if fld_name and '_rels' in fld_name:
+            for file in i[2]:
+                rel_list += [f'{fld_name}/{file}']
+    return rel_list
+
+
+def change(file, fld_lst):
+    """
+    change the content of the file
+    """
+    path = f'{output_file_loc}/ppt/{file}'
+    # print("PPPPP: ", path)
+    root, tree = gen_tree(path)
+    for relation in root:
+        attrib = relation.attrib
+        if '../' in attrib.get('Target'):
+            fld = attrib.get('Target').split('../')[1]
+            if fld in fld_lst:
+                relation.set('Target', f'../{dict_1[fld]}')
+        else:
+            fld = attrib.get('Target')
+            if fld in fld_lst:
+                relation.set('Target', f'{dict_1[fld]}')
+    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+
+def contents(data):
+    """
+    content refactoring
+    """
+    # list all the keys from json file
+    fld_lst = data.keys()
+
+    rel_files = list_rels()
+    # print("RELS: ", rel_files)
     
+    for file in rel_files:
+        change(file, fld_lst)
+    
+
+def max_rId():
+    """
+    returns maximum rId
+    """
+    path = f'{output_file_loc}/ppt/_rels/presentation.xml.rels'
+    root, tree = gen_tree(path)
+    
+    rIds = []
+    
+    for relation in root:
+        attrib = relation.attrib
+        rId = int(attrib.get('Id').split('Id')[-1])
+        rIds.append(rId)
+        # print("ATTRIB: ", attrib)
+    print("RIDSS: ", rIds)
+    return max(rIds)
 
 if __name__ == '__main__':
     base_path = os.path.dirname(os.path.realpath(__file__))
@@ -105,73 +178,47 @@ if __name__ == '__main__':
     # layouts = OrderedDict()
     # masters = OrderedDict()
 
-    json_data = []
+    json_data = OrderedDict()
+    dict_1 = OrderedDict()
+    dict_2 = OrderedDict()
+    m_rId = max_rId()
+    dict_2.update({'rId': m_rId })
+    # print("9090909090", m_rId)
     num = -1
     
     for i in os.walk(f'{output_file_loc}/ppt/'):
-        fld = OrderedDict()
         fld_name = i[0].split('ppt/')[1]
+        # print("II: ", i, "\nTT: ", fld_name)
         if not fld_name:
             folders = i[1]
-            print("FOLDER: ", folders)
-            num += 1
         else:
             if fld_name in folders:
-            # if folders[num] not in fld.keys():
                 try:
                     res = re.findall(r'(\w+?)(\d+)', i[2][0])[0][0]
-                    print("RES: ", res)
-                    fl_lis = list_files(folders[num], res)
-                    print("fl_lis: ", fl_lis)
-                    fld[folders[num]] = fl_lis
-                    print("HHH: ", fld)
-                    json_data.append(fld)
+                    d1, d2 = list_files(fld_name, res)
+                    dict_1.update(d1)
+                    dict_2.update(d2)
                 except:
                     pass
-                
-                
-                num += 1
             
-    obj = json.dumps(json_data)
+    obj_1 = json.dumps(dict_1)
+    obj_2 = json.dumps(dict_2)
     
-    with open("sample.json", "w") as outfile:
-        outfile.write(obj)
-            
-    
-    # dir_list = {'media': 'image', 'slides': 'slide', 'slideMasters': 'slideMaster', 'slideLayouts': 'slideLayout', 'theme': 'theme'}
-    
-    # for i, j in dir_list.items():
-    #     if 'media' == i:
-    #         media = list_files(i, j)
-    #         # update_med(media[0], 'media/')
-    #         # print("MEDIA: ", media)
-    #     elif 'slides' == i:
-    #         slides = list_files(i, j)
-    #         sld = update_rels(slides[0], 'slides/')
-    #         md = update_med(media[0] , 'media/', slides[1])
-    #         # print("MDD: ", md, "\nSLD: ", sld)
-    #         print("SLIDES: ", slides, "\nHHH: ", sld)
-    #     elif 'slideMasters' == i:
-    #         masters = list_files(i, j)
-    #         # print("MASTERS: ", masters)
-    #         print()
-    #     elif 'slideLayouts' == i:
-    #         layouts = list_files(i, j)
-    #         # print("LAYOUTS: ", layouts)
-    #         print()
-    #     elif 'theme' == i:
-    #         theme = list_files(i, j)
-    #         # print("THEME: ", theme)
-    #         print()
-    #         # print("THEME: ", theme)
+    with open("json/dict_1.json", "w") as outfile:
+        outfile.write(obj_1)
+     
+    with open("json/dict_2.json", "w") as outfile:
+        outfile.write(obj_2)
 
-    # a = [OrderedDict([('image1.emf', 'image1.emf'), ('image2.png', 'image2.png'), ('image3.emf', 'image3.emf'), ('image4.jpeg', 'image4.jpeg'), ('image5.png', 'image5.png'), ('image8.png', 'image6.png'), ('image23.png', 'image7.png'), ('image24.png', 'image8.png'), ('image25.png', 'image9.png')])]
+    contents(dict_1)
     
-    # # print("SLIDES: ", slide_list)
     
-    # count = 1
-    # # for 
-    # # for i in slide_list:
+    # with open('json/dict_1.json') as f:
+    #     data = json.load(f)
+    # print("SSS: ", data)
+    # contents(data)
+        
+    
     
     """
     sld = {s2:s1, s4:s2, s6:s3}

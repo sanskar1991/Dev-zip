@@ -34,20 +34,6 @@ def zipdir(path, file_name):
     return
 
 
-def ig_d(dir, files):
-    """
-    filter ppt folder
-    """
-    return [f for f in files if f=='ppt']
-
-
-def ig_f(dir, files):
-    """
-    filter all files
-    """
-    return [f for f in files if os.path.isfile(os.path.join(dir, f))]
-
-
 def new (ft) :
     """
     create, move and unzip the empty output deck
@@ -64,24 +50,49 @@ def new (ft) :
     return
 
 
-def make_dir(des, file):
+# ------- First input deck --------
+def make_structure(file):
     """
-    creates input deck directories which does not exists in the output deck
+    creates structure of input deck
     """
     for i in os.walk(f'{tmp_path}/{file}'):
-        # print("YYY: ", i, i[0])
-        loc = f"{output_file_loc}/{i[0].split(f'{file}/')[-1]}"
-        # print("LOC: ", loc)
-        
-        if os.path.exists(loc) and ('ppt' not in loc) and (file not in loc):
-            # print("YES")
-            shutil.rmtree(f'{output_file_loc}/{i[0].split(file)[-1]}')
-            shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
-        if not os.path.exists(f'{output_file_loc}/{i[0].split(file)[-1]}'):
-            os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
+        fld = i[0].split(file)[-1]
+        if fld:
+            loc = f"{output_file_loc}{fld}"
+            if 'ppt' not in loc and (file not in loc):
+                shutil.rmtree(f'{output_file_loc}/{fld}')
+                shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+            # if not os.path.exists(f'{output_file_loc}/{fld}'):
+            #     if 'ppt' not in f'{output_file_loc}/{fld}':
+            #         shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+            #     else:
+            #         os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
     return
 
 
+# ----- both -----
+def make_dir(file): # output_file_loc = des
+    """
+    creates input deck directories which does not exists in the output deck
+    """
+    # print("777777: ", file, "\nJJJJJ: ", f'{tmp_path}/{file}')
+    for i in os.walk(f'{tmp_path}/{file}'):
+        fld = i[0].split(file)[-1]
+        if fld:
+            loc = f"{output_file_loc}{fld}"
+            # if os.path.exists(loc) and ('ppt' not in loc) and (file not in loc):
+            #     shutil.rmtree(f'{output_file_loc}/{fld}')
+            #     shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+            if not os.path.exists(f'{output_file_loc}/{fld}'):
+                os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
+                # if 'ppt' not in f'{output_file_loc}/{fld}':
+                #     shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+                # else:
+                #     os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
+    return
+
+
+# ----- both -----
 def first_slide(path):
     """
     returns the first slide rId
@@ -97,6 +108,7 @@ def first_slide(path):
             return int(attrib['Id'].split('Id')[-1])
 
 
+# ----- both ----- (needs to be modified)
 def copy_mandatory(src, des):
     """
     copy mandatory files
@@ -112,6 +124,7 @@ def copy_mandatory(src, des):
     return
 
 
+# ----- both -----
 def xml_to_dict(path):
     """
     convert xml to dict
@@ -126,7 +139,8 @@ def xml_to_dict(path):
     return data
 
 
-def tag(inp_tag, out_tag):
+# ---- dont know ----
+def xml_tag(inp_tag, out_tag):
     """
     returns a dict of tags
     """
@@ -140,6 +154,7 @@ def tag(inp_tag, out_tag):
     return tag_dict
     
 
+# ----- both -----
 def gen_tree(path):
     """
     pass the path of the xml document to enable the parsing process
@@ -151,6 +166,7 @@ def gen_tree(path):
     return root, tree
 
 
+# ----- both -----
 def add_files(path, file_name, slides=None):
     """
     returns a list of files that needs to be modified in output deck
@@ -166,9 +182,8 @@ def add_files(path, file_name, slides=None):
         # get rId of first slide
         # f_slide = "slide1.xml"
         # first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
-        print("111", path)
+        # print("111", path)
         first_slide_id = first_slide(path)
-        print("222")
         files = []
         for i in data:
             current_rId = int(i['@Id'].split('Id')[1])
@@ -194,16 +209,25 @@ def add_files(path, file_name, slides=None):
                     if os.path.exists(path):
                         add_files(path, file_name)
     
+    return target_files
+    
+
+# ------ both ----- (needs to be modified) 
+def copy_file(target_files, file_name):
     # copy files from tmp dir to output dir
     for i in target_files:
         if '../' in i:
             if os.path.exists(tmp_path+'/'+file_name+'/ppt/'+i[3:]):
                 shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
+            elif os.path.exists(f'{tmp_path}/{file_name}/{i[3:]}'):
+                print("IIIII: ", i[3:])
+                shutil.copy(f'{tmp_path}/{file_name}/{i[3:]}', f"{output_file_loc}/{i[3:]}")
         else:
             shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
-    return target_files
+    return
  
-    
+
+# ----- both ----- (EMPTY)
 def select_all():
     """
     if slides is None
@@ -212,6 +236,7 @@ def select_all():
     pass
 
 
+# ----- both -----
 def total_slides(path):
     """
     returns total number of slides
@@ -270,6 +295,7 @@ def copy_prep_xml(src, des, tmp_loc, file_name): # f"{tmp_file_loc}/ppt"
     print("COMPLETED!!1")
 
 
+# ---- both ----
 def del_files(rels_fl, last_fl, path):
     """
     delete extra files
@@ -279,6 +305,7 @@ def del_files(rels_fl, last_fl, path):
             os.remove(f'{path}/{i}')
 
 
+# ----- both ------ (modify)
 def copy_rel(tmp_loc, out_loc, file_name): # f"{tmp_file_loc}/ppt"
     """
     copy all relelationship files
@@ -312,6 +339,7 @@ def copy_rel(tmp_loc, out_loc, file_name): # f"{tmp_file_loc}/ppt"
     copy_mandatory(src, des)
     copy_prep_xml(src, des, tmp_loc, file_name) # f"{tmp_file_loc}/ppt"
     return
+
 
 
 def modify(inp_root, out_root, tag_dict, i_tree, o_tree):
@@ -362,7 +390,7 @@ def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
     out_tag = [relation.tag for relation in out_root]
     # print("INP: ", inp_tag, "\nOUT: ", out_tag)
     
-    tag_dict = tag(inp_tag, out_tag)
+    tag_dict = xml_tag(inp_tag, out_tag)
     print("TAG1: ", tag_dict)
     elements = dict()
     if sldIds:
@@ -408,12 +436,17 @@ def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
     return
 
 
+# ------- first deck -------
 def first_deck(path, tmp_file_loc, file_name, slides):
     """
     handle first deck
     """
-    add_files(path, file_name, slides)
+    make_structure(file_name)
+    target_files = add_files(path, file_name, slides)
+    copy_file(target_files, file_name)
+    print("TARGET: ", target_files)
     copy_rel(tmp_file_loc, output_file_loc, file_name)
+    
     
 
 def deck_handle(id, msg, deck):
@@ -422,18 +455,22 @@ def deck_handle(id, msg, deck):
     """
     file_name, slides = msg['d'], msg['s']
     new(output_file_loc)
-    make_dir(output_file_loc, file_name)
+    
+    # unzip the input deck
+    unzip(f'{input_decks}/{file_name}.pptx', f'{tmp_path}/{file_name}')
+    
+    make_dir(file_name)
+    
     tmp_file_loc = f'{tmp_path}/{file_name}'
     prep_xml_path = f'{tmp_file_loc}/ppt/_rels/presentation.xml.rels'
     if deck == 1:
         first_deck(prep_xml_path, tmp_file_loc, file_name, slides)
+    else:
+        target_files = add_files(prep_xml_path, file_name, slides)
+      
+        # print("TARGET: ", target_files)
 
-    # unzip the input deck
-    # unzip(f'{input_decks}/{file_name}.pptx', f'{tmp_path}/{file_name}')
     
-    
-    prep_xml_path = f'{tmp_file_loc}/ppt/_rels/presentation.xml.rels'
-    # a = add_files(prep_xml_path, file_name, slides)
     # print("TARGET11: ", a)
     # pre_xml(file_name)
     
@@ -484,4 +521,4 @@ if __name__ == '__main__':
         deck_handle(render_id, sample_msg.pop(0), deck)
         deck += 1
 
-    zipdir(f'{output_file_loc}', "Test")
+    # zipdir(f'{output_file_loc}', "Test")

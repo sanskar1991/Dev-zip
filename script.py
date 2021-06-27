@@ -219,5 +219,5 @@ if __name__ == '__main__':
     #     deck_handle(render_id, sample_msg.pop(0))
     # for i in range(1,len(sample_msg)):
     #     deck_handle(render_id, sample_msg[i])
-    # zipdir(output_path+'/'+'41', 'Testing')
+    zipdir(output_path+'/'+'41', 'Testing')
 
