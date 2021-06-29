@@ -377,10 +377,51 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
     return d_1
 
 
-def update_rels(fl_list):
+def update_rels(fl_list, tmp_loc, dict_1):
     """
     update latest .rels files
     """
+    old_files = natsort.natsorted([i for i in dict_1.keys()])
+    path = f'{tmp_loc}/ppt'
+    for i in fl_list:
+        # print("II: ", i, type(i))
+        a = f'{path}/{i}'
+        print("IIII: ", type(a), a)
+        root, tree = gen_tree(a)
+        for relation in root:
+            attrib = relation.attrib
+            if attrib.get('Target')[3:] in old_files:
+                relation.set('Target', dict_1[attrib.get('Target')[3:]])
+        tree.write(f'{path}/{i}', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    return
+
+
+def update_prep_rels(inp_path, file_name):
+    """
+    update the presentation.xml.rels file
+    """
+    root, tree = gen_tree(inp_path)
+    
+    data = xml_to_dict(inp_path)
+    tot_slides = total_slides(f'{input_decks}/{file_name}.pptx')
+    first_slide_id = first_slide(inp_path)
+    
+    files = []
+    for relation in root:
+        attrib = relation.attrib
+        current_rId = attrib.get('Id')
+        if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
+            tag = relation.tag
+        pass
+        # files = []
+        # for i in data:
+        #     current_rId = int(i['@Id'].split('Id')[1])
+        #     if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
+        #         if 'slideLayouts' not in i['@Target'] and 'slideMasters' not in i['@Target'] and 'theme' not in i['@Target']:
+        #             files.append(i['@Target'])
+        
+        
+    
 
 
 def deck_handler(id, msg, deck, dict_2):
@@ -427,7 +468,8 @@ def deck_handler(id, msg, deck, dict_2):
 
     # modify the rels files
     rels_list = get_rels(dict_1)
-    update_rels(rels_list)
+    update_rels(rels_list, tmp_loc, dict_1)
+    update_prep_rels(prep_xml_path, file_name)
     print("AAA: ", rels_list)
 
 
