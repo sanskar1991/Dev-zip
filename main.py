@@ -100,6 +100,16 @@ def first_slide(path):
             return int(attrib['Id'].split('Id')[-1])
 
 
+def get_rels(dict_1):
+    """
+    list latest .rels files
+    """
+    # a = dict_1.keys()
+    a = [i for i in dict_1.values()]
+    lis = natsort.natsorted([i for i in a if '_rels' in i])
+    return lis
+
+
 def new(path):
     """
     create, move and unzip the empty output deck
@@ -175,11 +185,14 @@ def add_files(path, file_name, target_files, slides=None):
                     files.append(i['@Target'])
         for i in files:
             if '/' in i:
-                fld = i.split('/')[0]
+                a = i.split('/')
+                fld, fl = a[0], a[1]
                 if os.path.exists(f'{tmp_path}/{file_name}/ppt/{fld}/_rels'):
-                    fl_list = os.listdir(f'{tmp_path}/{file_name}/ppt/{fld}/_rels')
-                    for i in fl_list:
-                        
+                    if os.path.isfile(f'{tmp_path}/{file_name}/ppt/{fld}/_rels/{fl}.rels'):
+                        target_files.append(f'{fld}/_rels/{fl}.rels')
+                    # fl_list = os.listdir(f'{tmp_path}/{file_name}/ppt/{fld}/_rels')
+                    # for i in fl_list:
+                    #     if 
                     
             pass# if rel exists then will add it to list
         
@@ -250,7 +263,6 @@ def list_target(target_files, d2):
             d2['slideLayouts'] = 0
         if 'theme' not in d2:
             d2['theme'] = 0
-    print("____ : ", d2)
     return d2
     
 
@@ -307,21 +319,21 @@ def copy_mandatory(src, des, deck):
             if os.path.exists(f'{src}/ppt/{fl}/_rels'):
                 dict_2[f'{fl}/_rels'] = count
     else:
-        print("SSSS: ", dict_2)
+        # print("SSSS: ", dict_2)
         for i in m_list:
             if os.path.exists(f'{des}/{i}'):
                 for j in os.walk(f'{src}/ppt/{i}'):
                     # j = (path, [folder], [file])
                     fld = j[0].split('ppt/')[1]
                     
-                    print("TTT: ", fld, "--", j[2]) # array
+                    # print("TTT: ", fld, "--", j[2]) # array
                     fl_list = natsort.natsorted(j[2])
                     for x in fl_list:
                         ext = ''.join(pathlib.Path(x).suffixes)
                         name = re.findall(r'(\w+?)(\d+)', x)[0][0]
                         count = dict_2[fld]+1
                         new_name = f'{name}{count}{ext}'
-                        print("UUUU: ", new_name, count)
+                        # print("UUUU: ", new_name, count)
                         # print("UUUU: ", f'{src}/ppt/{i}/{x}')
                         # print("1111: ", f'{des}/{fld}/{new_name}')
                         shutil.copy(f'{src}/ppt/{fld}/{x}', f'{des}/{fld}/{new_name}')
@@ -331,7 +343,6 @@ def copy_mandatory(src, des, deck):
     
     # remove empty folders
     for i in os.walk(des):
-        print("WW: ", i)
         if not i[2]:
             shutil.rmtree(i[0])
 
@@ -353,7 +364,7 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
         if '/' in i:
             if 'slideLayouts' not in i and 'slideMasters' not in i and 'theme' not in i:
                 fld_name,fl_name = get_fld_fl(i)
-                print("DDDD: ", fl_name)
+                # print("DDDD: ", fl_name)
                 if os.path.exists(f'{tmp_loc}/ppt/{fld_name}/{fl_name}'):
                     path = f'{tmp_loc}/ppt'
                     d_1.update(rename(path, fld_name, fl_name, dict_2))
@@ -364,6 +375,12 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
                 shutil.copyfile(f'{tmp_loc}/ppt/{i}', f'{output_path}/ppt/{i}')
     
     return d_1
+
+
+def update_rels(fl_list):
+    """
+    update latest .rels files
+    """
 
 
 def deck_handler(id, msg, deck, dict_2):
@@ -389,7 +406,7 @@ def deck_handler(id, msg, deck, dict_2):
     if deck == 1:
         make_structure(file_name)
         
-    print("DICT_2: ", dict_2)
+    # print("DICT_2: ", dict_2)
     target_files = add_files(prep_xml_path, file_name, target_files, slides)
     print("TARGET: ", target_files)
     dict_2.update(list_target(target_files, dict_2))
@@ -408,6 +425,10 @@ def deck_handler(id, msg, deck, dict_2):
     with open("new_json/dict_2.json", "w") as outfile:
         outfile.write(obj_2)
 
+    # modify the rels files
+    rels_list = get_rels(dict_1)
+    update_rels(rels_list)
+    print("AAA: ", rels_list)
 
 
 
