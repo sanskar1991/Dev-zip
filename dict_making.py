@@ -4,6 +4,7 @@ import pathlib
 import base
 import re
 import json
+import natsort
 
 from collections import OrderedDict
 from lxml import etree
@@ -59,44 +60,44 @@ def gen_tree(path):
     return root, tree
 
 
-def modify_files(path, root, tree, name, asset_dict):
-    """
-    modify files for new assests
-    """
-    ord_dict = OrderedDict()
-    for relation in root:
-        attrib = relation.attrib
-        if name in attrib.get('Target'):
-            att = attrib.get('Target')
-            if att.split(name)[1] in asset_dict.keys():
-                relation.set('Target', f'{name}{asset_dict[att.split(name)[1]]}')
-                ord_dict[asset_dict.get(att.split(name)[1])] = attrib.get('Id')
+# def modify_files(path, root, tree, name, asset_dict):
+#     """
+#     modify files for new assests
+#     """
+#     ord_dict = OrderedDict()
+#     for relation in root:
+#         attrib = relation.attrib
+#         if name in attrib.get('Target'):
+#             att = attrib.get('Target')
+#             if att.split(name)[1] in asset_dict.keys():
+#                 relation.set('Target', f'{name}{asset_dict[att.split(name)[1]]}')
+#                 ord_dict[asset_dict.get(att.split(name)[1])] = attrib.get('Id')
                 
-    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+#     tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
     
-    return ord_dict
+#     return ord_dict
 
 
-def update_rels(sld_dict, name):
-    """
-    update slides in rels file
-    """
-    path = f'{output_file_loc}/ppt/_rels/presentation.xml.rels'
-    root, tree = gen_tree(path)
+# def update_rels(sld_dict, name):
+#     """
+#     update slides in rels file
+#     """
+#     path = f'{output_file_loc}/ppt/_rels/presentation.xml.rels'
+#     root, tree = gen_tree(path)
     
-    sld = modify_files(path, root, tree, name, sld_dict)
-    return sld
+#     sld = modify_files(path, root, tree, name, sld_dict)
+#     return sld
 
 
-def update_med(md_dict, name, files):
-    """
-    update media in rel files of slide
-    """
-    for i in files.values():
-        path = f'{output_file_loc}/ppt/slides/_rels/{i}'
-        root, tree = gen_tree(path)
-        md = modify_files(path, root, tree, name, md_dict)
-    return md
+# def update_med(md_dict, name, files):
+#     """
+#     update media in rel files of slide
+#     """
+#     for i in files.values():
+#         path = f'{output_file_loc}/ppt/slides/_rels/{i}'
+#         root, tree = gen_tree(path)
+#         md = modify_files(path, root, tree, name, md_dict)
+#     return md
 
 
 def list_rels():
@@ -130,6 +131,7 @@ def change(file, fld_lst):
             if fld in fld_lst:
                 relation.set('Target', f'{dict_1[fld]}')
     tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    return
 
 
 def contents(data):
@@ -140,10 +142,10 @@ def contents(data):
     fld_lst = data.keys()
 
     rel_files = list_rels()
-    # print("RELS: ", rel_files)
     
     for file in rel_files:
         change(file, fld_lst)
+    return
     
 
 def max_rId():
@@ -163,6 +165,80 @@ def max_rId():
     print("RIDSS: ", rIds)
     return max(rIds)
 
+
+def copy_element(file, file_name, count, dict_3): # file = 'slides/slide1.xml'
+    """
+    gather all the attributes and namespace of the element
+    """
+    
+    inp_path = f'{tmp_path}/{file_name}/'
+    
+    ext = ''.join(pathlib.Path(file).suffixes)
+    if '../' in file:
+        _,fld_name,fl_name = file.split('/')
+        res = re.findall(r'(\w+?)(\d+)', fl_name)[0][0]
+        new_name = f'{res}{count}{ext}'
+        if os.path.exists(f'{tmp_path}/{file_name}/ppt/{file[3:]}'):
+            # _,fld_name,fl_name = file.split('/')
+            print("RES3 : ", re.findall(r'(\w+?)(\d+)', file[3:]))
+            print("RES4 : ", re.findall(r'(\w+?)(\d+)', file[3:])[0])
+            # res = re.findall(r'(\w+?)(\d+)', file[3:])[0][0]
+            print("RES5 : ", res)
+            print("RES6 : ", re.findall(r'(\w+?)(\d+)', file))
+            shutil.copy(f'{tmp_path}/{file_name}/ppt/{file[3:]}', f"{output_file_loc}/ppt/{fld_name}/{new_name}")
+            dict_3[file[3:]] = new_name
+            # count += 1
+            
+        elif os.path.exists(f'{tmp_path}/{file_name}/{file[3:]}'):
+            # new_name = f'{res}{count}{ext}'
+            shutil.copy(f'{tmp_path}/{file_name}/{file[3:]}', f'{output_file_loc}/{new_name}')
+            dict_3[file[3:]] = new_name
+            # count += 1
+    else:
+        fld_name,fl_name = file.split('/')
+        print("RES1 : ", re.findall(r'(\w+?)(\d+)', file))
+        print("RES2 : ", re.findall(r'(\w+?)(\d+)', file)[0])
+        res = re.findall(r'(\w+?)(\d+)', fl_name)[0][0]
+        print("RES0 : ", res)
+        new_name = f'{fld_name}/{res}{count}{ext}'
+        shutil.copy(f'{tmp_path}/{file_name}/ppt/{file}', f"{output_file_loc}/ppt/{new_name}")
+        dict_3[file] = new_name
+        
+    # count += 1
+    
+    return
+
+
+def new_assets(target_files, file_name):
+    """
+    refactoring asset names
+    """
+    inp_path = f'{tmp_path}/{file_name}'
+    
+    target_files = natsort.natsorted(target_files)
+    # target_files.sort(key=lambda fname: int(fname.strip(fl_name).split('.')[0]))
+    dict_3 = OrderedDict()
+    for i in target_files:
+        if '/' in i:
+            if 'slideMasters' not in i or 'slideLayouts' not in i or 'theme' not in i:
+                fld_name = i.split('/')[-2]
+                if fld_name in dict_2.keys():
+                    count = dict_2[fld_name]
+                    rId = dict_2['rId']
+                else:
+                    count = 1
+                    rId = dict_2['rId']+1
+                
+                copy_element(i, file_name, count, dict_3)
+                count += 1
+                rId += 1
+                dict_2[fld_name] = count
+                dict_2['rId'] = rId
+    return dict_3, dict_2
+            
+            
+            
+
 if __name__ == '__main__':
     base_path = os.path.dirname(os.path.realpath(__file__))
     print("CURRENT_DIR:", base_path)
@@ -171,19 +247,13 @@ if __name__ == '__main__':
     tmp_path = f'{base_path}/tmp/{render_id}'
     input_decks = f'{base_path}/presentations'
     output_file_loc = f'{output_path}/{render_id}'
-        
 
-    # media = OrderedDict()
-    # slides = OrderedDict()
-    # layouts = OrderedDict()
-    # masters = OrderedDict()
 
     json_data = OrderedDict()
     dict_1 = OrderedDict()
     dict_2 = OrderedDict()
     m_rId = max_rId()
     dict_2.update({'rId': m_rId })
-    # print("9090909090", m_rId)
     num = -1
     
     for i in os.walk(f'{output_file_loc}/ppt/'):
@@ -212,6 +282,15 @@ if __name__ == '__main__':
 
     contents(dict_1)
     
+    target_files = ['../customXml/item1.xml', '../customXml/item2.xml', '../customXml/item3.xml', 'slideMasters/slideMaster1.xml', 'slideMasters/slideMaster2.xml', 'slideMasters/slideMaster3.xml', 'slideMasters/slideMaster4.xml', 'notesMasters/notesMaster1.xml', 'handoutMasters/handoutMaster1.xml', 'commentAuthors.xml', 'presProps.xml', 'viewProps.xml', 'theme/theme1.xml', 'tableStyles.xml', 'changesInfos/changesInfo1.xml', 'revisionInfo.xml', 'slides/slide2.xml', '../slideLayouts/slideLayout11.xml', '../slideMasters/slideMaster1.xml', '../slideLayouts/slideLayout1.xml', '../slideLayouts/slideLayout2.xml', '../media/image3.emf', '../slideLayouts/slideLayout3.xml', '../slideLayouts/slideLayout4.xml', '../slideLayouts/slideLayout5.xml', '../slideLayouts/slideLayout6.xml', '../slideLayouts/slideLayout7.xml', '../media/image4.jpeg', '../media/image5.png', '../slideLayouts/slideLayout8.xml', '../slideLayouts/slideLayout9.xml', '../slideLayouts/slideLayout10.xml', '../theme/theme1.xml', '../media/image1.emf', '../media/image2.png', '../media/image8.png', 'slides/slide4.xml', 'slides/slide6.xml', '../notesSlides/notesSlide2.xml', '../notesMasters/notesMaster1.xml', '../theme/theme5.xml', '../slides/slide6.xml', '../media/image23.png', '../media/image24.png', '../media/image25.png']
+
+    file_name = 'Onboarding'
+    a, b = new_assets(target_files, file_name)
+    dict_3 = a
+    obj_3 = json.dumps(dict_3)
+    
+    with open("json/dict_3.json", "w") as outfile:
+        outfile.write(obj_3)
     
     # with open('json/dict_1.json') as f:
     #     data = json.load(f)

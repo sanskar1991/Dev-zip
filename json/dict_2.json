@@ -1,13 +1,1 @@
-{
-    "rId": 44,
-    "handoutMasters": 2,
-    "slideLayouts": 27,
-    "notesSlides": 2,
-    "slideMasters": 5,
-    "slides": 4,
-    "changesInfos": 2,
-    "theme": 7,
-    "notesMasters": 2,
-    "media": 10,
-    "printerSettings": 2
-}
+{"rId": 6, "customXml": 3, "notesMasters": 1, "handoutMasters": 1, "changesInfos": 1, "slides": 3, "slides/_rels": 3, "slideLayouts": 11, "slideLayouts/_rels": 11, "slideMasters": 1, "slideMasters/_rels": 1, "media": 9, "theme": 1, "notesSlides": 1, "notesSlides/_rels": 1}

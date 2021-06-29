@@ -61,7 +61,7 @@ def make_structure(file):
             loc = f"{output_file_loc}{fld}"
             if 'ppt' not in loc and (file not in loc):
                 shutil.rmtree(f'{output_file_loc}/{fld}')
-                shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+                shutil.copytree(f'{tmp_path}/{file}/{i[0].split(file)[-1]}', f'{output_file_loc}/{fld}')
             # if not os.path.exists(f'{output_file_loc}/{fld}'):
             #     if 'ppt' not in f'{output_file_loc}/{fld}':
             #         shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
@@ -114,7 +114,7 @@ def copy_mandatory(src, des):
     copy mandatory files
     """
     print("COPY MANDATORY CALLING")
-    lis = ['slideLayouts', 'theme']
+    lis = ['slideLayouts', 'theme', 'slideMasters']
     for dir in lis:
         if os.path.exists(f'{des}/{dir}'):
             shutil.rmtree(f'{des}/{dir}')
@@ -167,22 +167,19 @@ def gen_tree(path):
 
 
 # ----- both -----
-def add_files(path, file_name, slides=None):
+def add_files(path, file_name, target_files, slides=None):
     """
     returns a list of files that needs to be modified in output deck
     """
     print("CALLING.. Add_files")
-    global target_files
+    # global target_files
     data = xml_to_dict(path)
     if slides:
         global sldIds
         # get total slides
         # prs = Presentation(f"{base_path}/presentations/{file_name}.pptx")
         tot_slides = total_slides(f'{input_decks}/{file_name}.pptx')
-        # get rId of first slide
-        # f_slide = "slide1.xml"
-        # first_slide_id = int([i["@Id"] for i in data if first_slide in i['@Target']][0].split('Id')[1])
-        # print("111", path)
+
         first_slide_id = first_slide(path)
         files = []
         for i in data:
@@ -195,8 +192,9 @@ def add_files(path, file_name, slides=None):
             slide = f'slide{str(id)}.xml'
             sldIds.append([i["@Id"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
             target_files.append([i["@Target"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
-            shutil.copy(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", output_path+'/'+str(render_id)+'/ppt/slides/_rels/')
-            add_files(tmp_path+'/'+file_name+"/ppt/slides/_rels/"+slide+".rels", file_name)
+            shutil.copy(f'{tmp_path}/{file_name}/ppt/slides/_rels/{slide}.rels', f'{output_path}/{str(render_id)}/ppt/slides/_rels/')
+            add_files(f'{tmp_path}/{file_name}/ppt/slides/_rels/{slide}.rels', file_name, target_files)
+        # print("UUU1: ", target_files)
     else:
         for i in data:
             if i["@Target"] in target_files:
@@ -205,10 +203,13 @@ def add_files(path, file_name, slides=None):
                 # print("This time: ", i["@Target"])
                 target_files.append(i['@Target'])
                 if ".." in i['@Target'] and "xml" in i['@Target']:
-                    path = tmp_path+'/'+file_name+"/ppt/"+i['@Target'].split('..')[1].split('/')[1]+"/_rels/"+i['@Target'].split('..')[1].split('/')[2]+".rels"
+                    path = f"{tmp_path}/{file_name}/ppt/{i['@Target'].split('..')[1].split('/')[1]}/_rels/{i['@Target'].split('..')[1].split('/')[2]}.rels"
                     if os.path.exists(path):
-                        add_files(path, file_name)
-    
+                        # target_files.append(path.split('ppt/')[1])
+                        add_files(path, file_name, target_files)
+                        
+        # print("UUU2: ", target_files)
+    # print("UUU: ", target_files)
     return target_files
     
 
@@ -217,13 +218,14 @@ def copy_file(target_files, file_name):
     # copy files from tmp dir to output dir
     for i in target_files:
         if '../' in i:
-            if os.path.exists(tmp_path+'/'+file_name+'/ppt/'+i[3:]):
-                shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i[3:], output_path+'/'+str(render_id)+'/ppt/'+i[3:].split('/')[0])
+            if os.path.exists(f'{tmp_path}/{file_name}/ppt/{i[3:]}'):
+                shutil.copy(f'{tmp_path}/{file_name}/ppt/{i[3:]}', f"{output_file_loc}/ppt/{i[3:].split('/')[0]}")
             elif os.path.exists(f'{tmp_path}/{file_name}/{i[3:]}'):
                 print("IIIII: ", i[3:])
-                shutil.copy(f'{tmp_path}/{file_name}/{i[3:]}', f"{output_file_loc}/{i[3:]}")
+                shutil.copy(f'{tmp_path}/{file_name}/{i[3:]}', f'{output_file_loc}/{i[3:]}')
         else:
-            shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, output_path+'/'+str(render_id)+'/ppt/'+i.split('/')[0])
+            shutil.copy(f'{tmp_path}/{file_name}/ppt/{i}', f'{output_file_loc}/ppt/{i}')
+            # shutil.copy(tmp_path+'/'+file_name+'/ppt/'+i, f"{output_file_loc}/ppt/{i.split('/')[0]}")
     return
  
 
@@ -437,12 +439,12 @@ def pre_xml(file_name): # tmp/41/{file_name}/ppt/presentation.xml
 
 
 # ------- first deck -------
-def first_deck(path, tmp_file_loc, file_name, slides):
+def first_deck(path, tmp_file_loc, file_name, slides, target_files):
     """
     handle first deck
     """
     make_structure(file_name)
-    target_files = add_files(path, file_name, slides)
+    target_files = add_files(path, file_name, target_files, slides)
     copy_file(target_files, file_name)
     print("TARGET: ", target_files)
     copy_rel(tmp_file_loc, output_file_loc, file_name)
@@ -454,6 +456,7 @@ def deck_handle(id, msg, deck):
     handle the deck and select files for output deck
     """
     file_name, slides = msg['d'], msg['s']
+    target_files = []
     new(output_file_loc)
     
     # unzip the input deck
@@ -462,11 +465,15 @@ def deck_handle(id, msg, deck):
     make_dir(file_name)
     
     tmp_file_loc = f'{tmp_path}/{file_name}'
+    # print("FILE_LOC: ", file_name)
     prep_xml_path = f'{tmp_file_loc}/ppt/_rels/presentation.xml.rels'
     if deck == 1:
-        first_deck(prep_xml_path, tmp_file_loc, file_name, slides)
+        first_deck(prep_xml_path, tmp_file_loc, file_name, slides, target_files)
     else:
-        target_files = add_files(prep_xml_path, file_name, slides)
+        # print("SSSS: :", target_files, slides, file_name)
+        target_files = add_files(prep_xml_path, file_name, target_files, slides)
+        
+        print("TARGETLLLLLL: ", target_files)
       
         # print("TARGET: ", target_files)
 
@@ -489,16 +496,17 @@ if __name__ == '__main__':
     
     base_path = os.path.dirname(os.path.realpath(__file__))
     print("CURRENT_DIR:", base_path)
-    target_files = []
+    # target_files = []
     sldIds = []
     
     # load the message
     # file = open('sample_input.json')
     # sample_msg = json.load(file)
     # file.close()
-    sample_msg = [41,{'d': 'Onboarding','s':  [2,4,6]}]
-    # sample_msg = [41,{'d': 'Presentation1','s':  [1]}]
-    # sample_msg = [41,{'d': 'BI Case Studies','s':  [2, 3]}]
+    sample_msg = [41, {'d': 'Onboarding','s':  [2,4,6]}, {'d': 'Presentation1','s':  [1]}]
+    # sample_msg = [41, {'d': 'Onboarding','s':  [2,4,6]}]
+    # sample_msg = [41, {'d': 'Presentation1','s':  [1]}]
+    # sample_msg = [41, {'d': 'BI Case Studies','s':  [2, 3]}]
 
     render_id = sample_msg.pop(0)
     
