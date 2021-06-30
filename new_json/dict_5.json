@@ -1,0 +1,98 @@
+{
+    "slideMasters/slideMaster4.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId7",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
+        "slideMasters/slideMaster4.xml"
+    ],
+    "../customXml/item2.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId2",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
+        "../customXml/item2.xml"
+    ],
+    "theme/theme1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId41",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
+        "theme/theme1.xml"
+    ],
+    "../customXml/item1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId1",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
+        "../customXml/item1.xml"
+    ],
+    "slideMasters/slideMaster3.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId6",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
+        "slideMasters/slideMaster3.xml"
+    ],
+    "handoutMasters/handoutMaster1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId37",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster",
+        "handoutMasters/handoutMaster1.xml"
+    ],
+    "slideMasters/slideMaster2.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId5",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
+        "slideMasters/slideMaster2.xml"
+    ],
+    "notesMasters/notesMaster1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId36",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster",
+        "notesMasters/notesMaster1.xml"
+    ],
+    "revisionInfo.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId44",
+        "http://schemas.microsoft.com/office/2015/10/relationships/revisionInfo",
+        "revisionInfo.xml"
+    ],
+    "slideMasters/slideMaster1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId4",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
+        "slideMasters/slideMaster1.xml"
+    ],
+    "changesInfos/changesInfo1.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId43",
+        "http://schemas.microsoft.com/office/2016/11/relationships/changesInfo",
+        "changesInfos/changesInfo1.xml"
+    ],
+    "../customXml/item3.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId3",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
+        "../customXml/item3.xml"
+    ],
+    "commentAuthors.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId38",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors",
+        "commentAuthors.xml"
+    ],
+    "slides/slide2.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId9",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
+        "slides/slide1.xml"
+    ],
+    "slides/slide4.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId11",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
+        "slides/slide2.xml"
+    ],
+    "slides/slide6.xml": [
+        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
+        "rId13",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
+        "slides/slide3.xml"
+    ]
+}

@@ -478,7 +478,6 @@ def update_dict_3(dict_1, dict_3):
     inp_keys = [i for i in dict_1.keys()]
     d3_keys = [i for i in dict_3.keys()]
     out_keys = natsort.natsorted([i for i in d3_keys])
-    # print("UUUU: ", out_keys)
     
     for i in out_keys:
         if '/' in i:
@@ -495,15 +494,18 @@ def update_rId(dict_2, files1, dict_3):
     """
     update the rIds
     """
+    d1 = OrderedDict()
     max_rId = dict_2['rId']
     for i in files1:
         max_rId += 1
         val = dict_3[i]
+        d1[val[1]] = f'rId{max_rId}'
         val[1] = f'rId{max_rId}'
         dict_3[i] = val
         
     dict_2['rId'] = max_rId
-    return dict_2, dict_3
+    # create_json(d1, 'dict_6')
+    return dict_2, dict_3, d1
 
 
 def write_rels(dict_3, files1):
@@ -581,7 +583,6 @@ def sub_tag(tag_dict, inp_root, inp_tree):
             pass
 
 
-def filter_sld_rIds(d1, sldIds):
     """
     filter slides on required slide rIds
     """
@@ -589,51 +590,61 @@ def filter_sld_rIds(d1, sldIds):
     a = d1[key]
     b = [i for i in a if i[-1] in sldIds]
     d1[key] = b
-    return d1
+    return d1    
+   
 
-
-def filter_emp_tags(d1, tag_dict):
+def modify_d2(d1, d2):
     """
-    filter empty tags, tags with no Id and rId
+    modify the subtag dictionary
     """
-    for i in tag_dict:
-        pass
-    # working
-      
+    val_list = [i for i in d2.keys()]
+    
+    for key in val_list:
+        # val = d2[key]
+        for i in range(len(d2[key])):
+            # print("TTT: ", d2[key][i][2])
+            val = d1[d2[key][i][2]]
+            # print("VAL: ", val)
+            d2[key][i][2] = val
+            if None in d2[key][i]:
+                d2[key][i].remove(None)
+    
+    return d2
+            
 
-def get_prep_tags(src_xml, tag_dict, sldIds):
+def get_prep_tags(src_xml, d1, sldIds):
     """
     get tags and subtags form input presentation.xml
     """
     root, tree = gen_tree(src_xml)
     
-    d1 = OrderedDict()
-    tag_list = [i for i in tag_dict.keys()]
+    d2 = OrderedDict()
+    rId_lis = [i for i in d1.keys()]
+    print("RRR: ", rId_lis)
     nmsps =  root.nsmap['r']
     
     for relation in root:
-        if relation.tag in tag_list:
-            for ele in relation:
-                attrib = ele.attrib
-                tag = ele.tag
-                if relation.tag in d1:
-                    # print("IF : ", relation.tag)
-                    try:
-                        val = d1[relation.tag]
-                        val.append([tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")])
-                        d1[relation.tag] = val
-                    except:
-                        pass
-                else:
-                    # print("ELSE: ", relation.tag)
-                    d1[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
-    # print("DDDD: ", d1)
-    d1 = filter_sld_rIds(d1, sldIds)
-    d1 = filter_emp_tags(d1, tag_dict)
-    create_json(d1, 'dict_4')
+        for ele in relation:
+            attrib = ele.attrib
+            tag = ele.tag
+            try:
+                if attrib.get(f"{{{nmsps}}}id"):
+                    if attrib.get(f"{{{nmsps}}}id") in rId_lis:
+                        if relation.tag in d2:
+                            val = d2[relation.tag]
+                            val.append([tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")])
+                            d2[relation.tag] = val
+                        else:
+                            d2[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
+                
+            except:
+                pass
+
+    d2 = modify_d2(d1, d2)
+    create_json(d2, 'dict_7')
     return
 
-def write_pres(tmp_loc, sldIds):
+def write_pres(tmp_loc, sldIds, d1):
     """
     update the presentation.xml file
     """
@@ -647,11 +658,30 @@ def write_pres(tmp_loc, sldIds):
     out_tag = [relation.tag for relation in out_root]
     
     # print("ITAG: ", inp_tag, "\nOUT_TAG: ", out_tag)
+    # problem
     tag_dict = xml_tag(inp_tag, out_tag)
-    
+    # print("TAG: ", tag_dict)
     create_tags(inp_root, out_root, tag_dict, inp_tree, out_tree)
-    get_prep_tags(src_xml, tag_dict, sldIds)
-    sub_tag(tag_dict, inp_root, inp_tree)
+    get_prep_tags(src_xml, d1, sldIds)
+    # sub_tag(tag_dict, inp_root, inp_tree)
+
+"""
+need to work on creating tags
+if tag exists then add the subtags
+else create it and then add the subtags
+
+here we need to do someting if a tag is created and 
+we are moving first time any deck like one master is present and we need to remove it
+then one possible soultion could be:
+iterate the presentation.xml.rels and store all the rIds into a list
+then check if existing tag is having one of the rIds from the list
+if not exists in the list then delete that subtag
+and start adding new
+
+we need to do this rId checking process separately before start adding new subtags
+"""
+
+
 
 
 def rel_duplicates():
@@ -690,11 +720,11 @@ def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     print("SLDIDS: ", sldIds)
     files1 = remove_dup(files1, dict_3, files2)
     dict_3 = update_dict_3(dict_1, dict_3)
-    dict_2, dict_3 = update_rId(dict_2, files1, dict_3)
+    dict_2, dict_3, d1 = update_rId(dict_2, files1, dict_3)
     create_json(dict_3, 'dict_3')
     write_rels(dict_3, files1)
     rel_duplicates()
-    write_pres(tmp_loc, sldIds)
+    write_pres(tmp_loc, sldIds, d1)
                 
 
 def deck_handler(id, msg, deck, dict_2):
