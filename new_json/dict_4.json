@@ -1,0 +1,50 @@
+{
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}notesMasterIdLst": [
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}notesMasterId",
+            null,
+            "rId36"
+        ]
+    ],
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}handoutMasterIdLst": [
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}handoutMasterId",
+            null,
+            "rId37"
+        ]
+    ],
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst": [
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}sldId",
+            "329",
+            "rId9"
+        ],
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}sldId",
+            "2268",
+            "rId11"
+        ],
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}sldId",
+            "1157",
+            "rId13"
+        ]
+    ],
+    "{http://schemas.openxmlformats.org/presentationml/2006/main}extLst": [
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}ext",
+            null,
+            null
+        ],
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}ext",
+            null,
+            null
+        ],
+        [
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}ext",
+            null,
+            null
+        ]
+    ]
+}

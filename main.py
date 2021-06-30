@@ -165,16 +165,16 @@ def make_structure(file_name):
             if 'ppt' not in loc and (file_name not in loc):
                 shutil.rmtree(f'{output_path}/{fld}')
                 shutil.copytree(f'{tmp_path}/{file_name}/{i[0].split(file_name)[-1]}', f'{output_path}/{fld}')
-            elif 'ppt' in loc:
-                if 'slideLayouts' in loc or 'slideMasters' in loc or 'theme' in loc:
-                    # copy_mandatory()
-                    pass
+            # elif 'ppt' in loc:
+            #     if 'slideLayouts' in loc or 'slideMasters' in loc or 'theme' in loc:
+            #         # copy_mandatory()
+            #         pass
             
-            # if not os.path.exists(f'{output_file_loc}/{fld}'):
-            #     if 'ppt' not in f'{output_file_loc}/{fld}':
-            #         shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
-            #     else:
-            #         os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
+            # # if not os.path.exists(f'{output_file_loc}/{fld}'):
+            # #     if 'ppt' not in f'{output_file_loc}/{fld}':
+            # #         shutil.copytree(f"{tmp_path}/{file}/{i[0].split(f'{file}/')[-1]}", f'{output_file_loc}/{i[0].split(file)[-1]}')
+            # #     else:
+            # #         os.makedirs(f'{output_file_loc}/{i[0].split(file)[-1]}')
     return
 
 
@@ -424,7 +424,8 @@ def update_rels(fl_list, tmp_loc, dict_1):
 
 def get_relations(inp_path, file_name, slides):
     """
-    update the presentation.xml.rels file
+    returns f1:list of inp targets, d3:dict of targets, 
+    f2: list of out target and sldIds: list of rIds of slides
     """
     root1,_ = gen_tree(inp_path)
     root2,_ = gen_tree(f'{output_path}/ppt/_rels/presentation.xml.rels')
@@ -435,6 +436,7 @@ def get_relations(inp_path, file_name, slides):
     dict_3 = OrderedDict()
     files1 = []
     files2 = []
+    sldIds = []
 
     for relation in root1:
         attrib = relation.attrib
@@ -446,6 +448,7 @@ def get_relations(inp_path, file_name, slides):
         if not slides:
             if (first_slide_id <= current_rId) or (current_rId < (first_slide_id+tot_slides+1)):
                 files1.append(attrib["Target"])
+                sldIds.append(attrib['Id'])
                 dict_3[attrib['Target']] = [relation.tag, attrib['Id'], attrib['Type'], attrib['Target']]
 
     if slides:
@@ -456,6 +459,7 @@ def get_relations(inp_path, file_name, slides):
                 # print("TYPE: ", type(attrib['Type']))
                 if slide in attrib['Target'] and "http" not in attrib['Target']:
                     files1.append(attrib['Target'])
+                    sldIds.append(attrib['Id'])
                     dict_3[attrib['Target']] = [relation.tag, attrib['Id'], attrib['Type'], attrib['Target']]
     files1 = natsort.natsorted(files1)
 
@@ -464,7 +468,7 @@ def get_relations(inp_path, file_name, slides):
         files2.append(attrib['Target'])
     files2 = natsort.natsorted(files2)
     
-    return files1, dict_3, files2
+    return files1, dict_3, files2, sldIds
 
 
 def update_dict_3(dict_1, dict_3):
@@ -502,28 +506,195 @@ def update_rId(dict_2, files1, dict_3):
     return dict_2, dict_3
 
 
-def write_rels():
+def write_rels(dict_3, files1):
     """
     adding assests in presentation.xml.rels
     """
     path = f'{output_path}/ppt/_rels/presentation.xml.rels'
     root, tree = gen_tree(path)
-    for relation in root:
+    for i in files1:
+        val = dict_3[i]
+        tag, Id, Type, target = val
+        ele = etree.Element(tag)
+        etree.SubElement(root, tag, Id=Id, Type=Type, Target=target)
+    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        
+
+def xml_tag(inp_tag, out_tag):
+    """
+    returns a dict, key=new_tag, value=prev_tag
+    """
+    tag_dict = OrderedDict()
+    sub_tag = OrderedDict()
+    for i in range(len(inp_tag)):
+        if inp_tag[i] not in out_tag:
+            # if i == 0:
+            #     tag_dict[inp_tag[i]] = [0]
+            # else:
+            tag_dict[inp_tag[i]] = [inp_tag[i-1]]
+    return tag_dict
+
+
+def create_tags(inp_root, out_root, tag_dict, i_tree, o_tree):
+    """
+    modify content of presentation.xml
+    """
+    for i, o in tag_dict.items():
+        # if o[0] == 0:
+        #     pass
+        subtag1 = o_tree.find(o[0])
+        subtag2 = etree.Element(i)
+        # for ele in elements:
+        #     subtext = etree.SubElement(subtag2, ele)
+        # subtext = etree.SubElement(subtag2)
+        subtag1.addnext(subtag2)
+            
+    with open (f'{output_path}/ppt/presentation.xml', 'wb') as f:
+        f.write(etree.tostring(out_root, pretty_print = True))
+    
+    return
+
+
+def sub_tag(tag_dict, inp_root, inp_tree):
+    """
+    lists subtags of missing tags
+    """
+    dict_4 = OrderedDict()
+    
+    tag = [i for i in tag_dict.keys()]
+    # print("TAG: ", tag)
+    for i in tag:
+        a = inp_tree.find(i)
+        attrib = a.attrib
+        # print("VAL: ", attrib)
+        # print("TYPE: ", type(attrib))
+        # fi=or 
+        # print("VAL: ", eval(str(attrib))
+        # print("VAL: ", attrib.keys())
+        # for k in attrib:
+        #     print("VAL: ", k)
+        # if 
+        for j in a:
+            # dict_4[attrib['']]
+            # dict_3[attrib['Target']] = [relation.tag, attrib['Id'], attrib['Type'], attrib['Target']]
+            # print("JJ: ", j.attrib)
+            pass
+
+
+def filter_sld_rIds(d1, sldIds):
+    """
+    filter slides on required slide rIds
+    """
+    key = "{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst"
+    a = d1[key]
+    b = [i for i in a if i[-1] in sldIds]
+    d1[key] = b
+    return d1
+
+
+def filter_emp_tags(d1, tag_dict):
+    """
+    filter empty tags, tags with no Id and rId
+    """
+    for i in tag_dict:
         pass
- 
-def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2):
+    # working
+      
+
+def get_prep_tags(src_xml, tag_dict, sldIds):
+    """
+    get tags and subtags form input presentation.xml
+    """
+    root, tree = gen_tree(src_xml)
+    
+    d1 = OrderedDict()
+    tag_list = [i for i in tag_dict.keys()]
+    nmsps =  root.nsmap['r']
+    
+    for relation in root:
+        if relation.tag in tag_list:
+            for ele in relation:
+                attrib = ele.attrib
+                tag = ele.tag
+                if relation.tag in d1:
+                    # print("IF : ", relation.tag)
+                    try:
+                        val = d1[relation.tag]
+                        val.append([tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")])
+                        d1[relation.tag] = val
+                    except:
+                        pass
+                else:
+                    # print("ELSE: ", relation.tag)
+                    d1[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
+    # print("DDDD: ", d1)
+    d1 = filter_sld_rIds(d1, sldIds)
+    d1 = filter_emp_tags(d1, tag_dict)
+    create_json(d1, 'dict_4')
+    return
+
+def write_pres(tmp_loc, sldIds):
+    """
+    update the presentation.xml file
+    """
+    src_xml = f'{tmp_loc}/ppt/presentation.xml'
+    des_xml = f'{output_path}/ppt/presentation.xml'
+    
+    inp_root, inp_tree = gen_tree(src_xml)
+    out_root, out_tree = gen_tree(des_xml)
+    
+    inp_tag = [relation.tag for relation in inp_root]
+    out_tag = [relation.tag for relation in out_root]
+    
+    # print("ITAG: ", inp_tag, "\nOUT_TAG: ", out_tag)
+    tag_dict = xml_tag(inp_tag, out_tag)
+    
+    create_tags(inp_root, out_root, tag_dict, inp_tree, out_tree)
+    get_prep_tags(src_xml, tag_dict, sldIds)
+    sub_tag(tag_dict, inp_root, inp_tree)
+
+
+def rel_duplicates():
+    """
+    remove the duplicates entries if any
+    """
+    path = f'{output_path}/ppt/_rels/presentation.xml.rels'
+    root, tree = gen_tree(path)
+    d1 = OrderedDict()
+    for relation in root:
+        rIds = []
+        attrib = relation.attrib
+        if attrib['Target'] in d1.keys():
+            val = d1[attrib['Target']]
+            val.append(attrib['Id'])
+            d1[attrib['Target']] = val
+        else:
+            d1[attrib['Target']] = [attrib['Id']]
+    # getting duplicates rIds
+    dup_rids = [v[0] for k,v in d1.items() if len(v)!=1]
+    
+    # removing relation
+    for relation in root:
+        attrib = relation.attrib
+        if attrib['Id'] in dup_rids:
+            root.remove(relation)
+    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    return
+
+
+def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc):
     """
     deals with rels and xml file of presentation
     """
-    files1, dict_3, files2 = get_relations(inp_pres_rels, file_name, slides)
-    
+    files1, dict_3, files2, sldIds = get_relations(inp_pres_rels, file_name, slides)
+    print("SLDIDS: ", sldIds)
     files1 = remove_dup(files1, dict_3, files2)
-    print("FILES3: ", files1)
-    # print("FILES2: ", files2)
     dict_3 = update_dict_3(dict_1, dict_3)
     dict_2, dict_3 = update_rId(dict_2, files1, dict_3)
     create_json(dict_3, 'dict_3')
-    write_rels()
+    write_rels(dict_3, files1)
+    rel_duplicates()
+    write_pres(tmp_loc, sldIds)
                 
 
 def deck_handler(id, msg, deck, dict_2):
@@ -561,16 +732,7 @@ def deck_handler(id, msg, deck, dict_2):
     # modify the rels files
     rels_list = get_rels(dict_1)
     update_rels(rels_list, tmp_loc, dict_1)
-    presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2)
-    
-    # print("AAA: ", rels_list)
-    # prep_xml_path = f'{tmp_loc}/ppt/slideLayouts/_rels/slideLayout2.xml.rels'
-    # print("1111")
-    # # parser = etree.XMLParser(remove_blank_text=True)
-    # # tree = etree.parse(prep_xml_path, parser)
-    # tree = etree.parse(prep_xml_path)
-    # root = tree.getroot()    
-    # print("2222")
+    presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
 
 
 if __name__ == '__main__':
