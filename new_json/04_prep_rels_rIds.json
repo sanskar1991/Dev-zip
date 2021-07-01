@@ -1,0 +1,137 @@
+{
+    "presProps.xml": [
+        "rId3"
+    ],
+    "viewProps.xml": [
+        "rId4"
+    ],
+    "theme/theme1.xml": [
+        "rId47"
+    ],
+    "tableStyles.xml": [
+        "rId6"
+    ],
+    "slideMasters/slideMaster1.xml": [
+        "rId15"
+    ],
+    "printerSettings/printerSettings1.bin": [
+        "rId2"
+    ],
+    "../customXml/item1.xml": [
+        "rId7"
+    ],
+    "../customXml/item2.xml": [
+        "rId8"
+    ],
+    "../customXml/item3.xml": [
+        "rId9"
+    ],
+    "changesInfos/changesInfo1.xml": [
+        "rId10"
+    ],
+    "commentAuthors.xml": [
+        "rId11"
+    ],
+    "handoutMasters/handoutMaster1.xml": [
+        "rId12"
+    ],
+    "notesMasters/notesMaster1.xml": [
+        "rId13"
+    ],
+    "revisionInfo.xml": [
+        "rId14"
+    ],
+    "slideMasters/slideMaster2.xml": [
+        "rId16"
+    ],
+    "slideMasters/slideMaster3.xml": [
+        "rId17"
+    ],
+    "slideMasters/slideMaster4.xml": [
+        "rId18"
+    ],
+    "slides/slide1.xml": [
+        "rId19"
+    ],
+    "slides/slide2.xml": [
+        "rId20"
+    ],
+    "slides/slide3.xml": [
+        "rId21"
+    ],
+    "slides/slide4.xml": [
+        "rId22"
+    ],
+    "slides/slide5.xml": [
+        "rId23"
+    ],
+    "slides/slide6.xml": [
+        "rId24"
+    ],
+    "slides/slide7.xml": [
+        "rId25"
+    ],
+    "slides/slide8.xml": [
+        "rId26"
+    ],
+    "slides/slide9.xml": [
+        "rId27"
+    ],
+    "slides/slide10.xml": [
+        "rId28"
+    ],
+    "slides/slide11.xml": [
+        "rId29"
+    ],
+    "slides/slide12.xml": [
+        "rId30"
+    ],
+    "slides/slide13.xml": [
+        "rId31"
+    ],
+    "slides/slide14.xml": [
+        "rId32"
+    ],
+    "slides/slide15.xml": [
+        "rId33"
+    ],
+    "slides/slide16.xml": [
+        "rId34"
+    ],
+    "slides/slide17.xml": [
+        "rId35"
+    ],
+    "slides/slide18.xml": [
+        "rId36"
+    ],
+    "slides/slide19.xml": [
+        "rId37"
+    ],
+    "slides/slide20.xml": [
+        "rId38"
+    ],
+    "slides/slide21.xml": [
+        "rId39"
+    ],
+    "slides/slide22.xml": [
+        "rId40"
+    ],
+    "slides/slide23.xml": [
+        "rId41"
+    ],
+    "slides/slide24.xml": [
+        "rId42"
+    ],
+    "slides/slide25.xml": [
+        "rId43"
+    ],
+    "slides/slide26.xml": [
+        "rId44"
+    ],
+    "slides/slide27.xml": [
+        "rId45"
+    ],
+    "slides/slide28.xml": [
+        "rId46"
+    ]
+}
