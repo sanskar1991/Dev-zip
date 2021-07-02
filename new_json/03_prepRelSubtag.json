@@ -1,248 +1,26 @@
 {
-    "slideMasters/slideMaster4.xml": [
+    "slideMasters/slideMaster1.xml": [
         "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId18",
+        "rId23",
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
-        "slideMasters/slideMaster4.xml"
-    ],
-    "../customXml/item2.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId8",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
-        "../customXml/item2.xml"
+        "slideMasters/slideMaster5.xml"
     ],
     "theme/theme1.xml": [
         "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId47",
+        "rId26",
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
-        "theme/theme1.xml"
-    ],
-    "../customXml/item1.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId7",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
-        "../customXml/item1.xml"
-    ],
-    "slideMasters/slideMaster3.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId17",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
-        "slideMasters/slideMaster3.xml"
-    ],
-    "handoutMasters/handoutMaster1.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId12",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster",
-        "handoutMasters/handoutMaster1.xml"
-    ],
-    "slideMasters/slideMaster2.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId16",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
-        "slideMasters/slideMaster2.xml"
-    ],
-    "notesMasters/notesMaster1.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId13",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster",
-        "notesMasters/notesMaster1.xml"
-    ],
-    "revisionInfo.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId14",
-        "http://schemas.microsoft.com/office/2015/10/relationships/revisionInfo",
-        "revisionInfo.xml"
-    ],
-    "slideMasters/slideMaster1.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId15",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster",
-        "slideMasters/slideMaster1.xml"
-    ],
-    "changesInfos/changesInfo1.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId10",
-        "http://schemas.microsoft.com/office/2016/11/relationships/changesInfo",
-        "changesInfos/changesInfo1.xml"
-    ],
-    "../customXml/item3.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId9",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
-        "../customXml/item3.xml"
-    ],
-    "commentAuthors.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId11",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors",
-        "commentAuthors.xml"
+        "theme/theme7.xml"
     ],
     "slides/slide1.xml": [
         "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId19",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide1.xml"
-    ],
-    "slides/slide2.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId20",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide2.xml"
-    ],
-    "slides/slide3.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId21",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide3.xml"
-    ],
-    "slides/slide4.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId22",
+        "rId24",
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
         "slides/slide4.xml"
     ],
-    "slides/slide5.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId23",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide5.xml"
-    ],
-    "slides/slide6.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId24",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide6.xml"
-    ],
-    "slides/slide7.xml": [
+    "slides/slide2.xml": [
         "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
         "rId25",
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide7.xml"
-    ],
-    "slides/slide8.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId26",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide8.xml"
-    ],
-    "slides/slide9.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId27",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide9.xml"
-    ],
-    "slides/slide10.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId28",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide10.xml"
-    ],
-    "slides/slide11.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId29",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide11.xml"
-    ],
-    "slides/slide12.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId30",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide12.xml"
-    ],
-    "slides/slide13.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId31",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide13.xml"
-    ],
-    "slides/slide14.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId32",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide14.xml"
-    ],
-    "slides/slide15.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId33",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide15.xml"
-    ],
-    "slides/slide16.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId34",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide16.xml"
-    ],
-    "slides/slide17.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId35",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide17.xml"
-    ],
-    "slides/slide18.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId36",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide18.xml"
-    ],
-    "slides/slide19.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId37",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide19.xml"
-    ],
-    "slides/slide20.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId38",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide20.xml"
-    ],
-    "slides/slide21.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId39",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide21.xml"
-    ],
-    "slides/slide22.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId40",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide22.xml"
-    ],
-    "slides/slide23.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId41",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide23.xml"
-    ],
-    "slides/slide24.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId42",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide24.xml"
-    ],
-    "slides/slide25.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId43",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide25.xml"
-    ],
-    "slides/slide26.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId44",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide26.xml"
-    ],
-    "slides/slide27.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId45",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide27.xml"
-    ],
-    "slides/slide28.xml": [
-        "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship",
-        "rId46",
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
-        "slides/slide28.xml"
+        "slides/slide5.xml"
     ]
 }

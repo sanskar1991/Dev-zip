@@ -123,6 +123,16 @@ def remove_dup(files1, dict_3, files2):
     return files1   
 
 
+def add_slides(file_name):
+    """
+    returns a list of all slides
+    """
+    path = f'{input_decks}/{file_name}.pptx'
+    sld = total_slides(path)+1
+    lis = list(range(1, sld))
+    return lis
+
+
 def new(path):
     """
     create, move and unzip the empty output deck
@@ -365,10 +375,10 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
                     d_1.update(rename(path, fld_name, fl_name, dict_2))
                 else:
                     d_1.update(rename(tmp_loc, fld_name, fl_name, dict_2))
-        else:
-            if not os.path.isfile(f'{output_path}/ppt/{i}'):
-                if os.path.isfile(f'{tmp_loc}/ppt/{i}'):
-                    shutil.copyfile(f'{tmp_loc}/ppt/{i}', f'{output_path}/ppt/{i}')
+        # else:
+        #     if not os.path.isfile(f'{output_path}/ppt/{i}'):
+        #         if os.path.isfile(f'{tmp_loc}/ppt/{i}'):
+        #             shutil.copyfile(f'{tmp_loc}/ppt/{i}', f'{output_path}/ppt/{i}')
     
     return d_1
 
@@ -625,28 +635,6 @@ def clean_prep_xml(des_xml, rels_rIds, pxml_subtags):
     return
 
 
-def write_pres(tmp_loc, d1, rels_rIds):
-    """
-    update the presentation.xml file
-    """
-    src_xml = f'{tmp_loc}/ppt/presentation.xml'
-    des_xml = f'{output_path}/ppt/presentation.xml'
-    
-    inp_root, inp_tree = gen_tree(src_xml)
-    out_root, out_tree = gen_tree(des_xml)
-    
-    inp_tag = [relation.tag for relation in inp_root]
-    out_tag = [relation.tag for relation in out_root]
-    
-    tag_dict = xml_tag(inp_tag, out_tag)
-    create_tags(tag_dict, out_tree)
-    
-    pxml_subtags = get_prep_tags(src_xml, d1)
-    create_json(pxml_subtags, '05_pxml_subtag')
-    clean_prep_xml(des_xml, rels_rIds, pxml_subtags)
-    add_subtags(des_xml, pxml_subtags)
-
-
 def rel_duplicates():
     """
     remove the duplicates entries of 'Target' field 
@@ -685,6 +673,28 @@ def rel_duplicates():
     return d1, rels_rIds
 
 
+def write_pres(tmp_loc, d1, rels_rIds):
+    """
+    update the presentation.xml file
+    """
+    src_xml = f'{tmp_loc}/ppt/presentation.xml'
+    des_xml = f'{output_path}/ppt/presentation.xml'
+    
+    inp_root, inp_tree = gen_tree(src_xml)
+    out_root, out_tree = gen_tree(des_xml)
+    
+    inp_tag = [relation.tag for relation in inp_root]
+    out_tag = [relation.tag for relation in out_root]
+    
+    tag_dict = xml_tag(inp_tag, out_tag)
+    create_tags(tag_dict, out_tree)
+    
+    pxml_subtags = get_prep_tags(src_xml, d1)
+    create_json(pxml_subtags, '05_pxml_subtag')
+    clean_prep_xml(des_xml, rels_rIds, pxml_subtags)
+    add_subtags(des_xml, pxml_subtags)
+
+
 def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc):
     """
     deals with rels and xml file of presentation
@@ -702,39 +712,40 @@ def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     write_pres(tmp_loc, d1, rels_rIds)
 
 
-def add_slides(file_name):
+def handle_configs(tmp_loc):
     """
-    returns a list of all slides
+    handle configuration files
     """
-    path = f'{input_decks}/{file_name}.pptx'
-    sld = total_slides(path)+1
-    lis = list(range(1, sld))
-    return lis 
+    inp_path = '/'.join([tmp_loc, 'ppt'])
+    out_path = f'{output_path}/ppt'
+    
+    config_fls = [i for i in os.listdir(inp_path) if os.path.isfile(f'{inp_path}/{i}')]
+    
+    mergables = ['commentAuthors.xml', 'tableStyles.xml']
+    sing_prop = ['viewProps.xml', 'presProps.xml']
+    ignore = ['revisionInfo.xml']
+    
+    for i in config_fls:
+        if i in mergables:
+            
+            inp_fl = f'{inp_path}/{i}'
+            out_fl = f'{out_path}/{i}'
+            if os.path.isfile(f'{out_path}/{i}'):
+                root1,tree1 = gen_tree(inp_fl)
+                root2,tree2 = gen_tree(out_fl)
+                
+                try:
+                    for relation in [f"{root1[0].tag}"]:
+                        for elt in root1.findall(relation):
+                            root2.append(elt)
+                except:
+                    pass
+                
+                tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+            else:
+                shutil.copyfile(inp_fl, out_fl)
+    
 
-
-def copy_extras(file_name):
-    """
-    copy extra files like tableStyles
-    """
-    for i in os.walk(f'{output_path}/ppt'):
-        inp_fl = [x for x in i[2] if '/' not in x]
-    for i in os.walk(f'{tmp_path}/{file_name}/ppt'):
-        out_fl = [x for x in i[2] if '/' not in x]
-    
-    inp_tbstyle = f'{tmp_path}/{file_name}/ppt/tableStyles.xml'
-    out_tbstyle = f'{output_path}/ppt/tableStyles.xml'
-    
-    root1,_ = gen_tree(inp_tbstyle)
-    root2, tree2 = gen_tree(out_tbstyle)
-    # print("III: ", inp_tbstyle)
-    # print("111: ", len(root1.attrib['def']))
-    # print("222: ", len(root2.attrib['def']))
-    if len(root1.attrib['def'])>len(root2.attrib['def']):
-        print("True")
-        root2.attrib['def'] = root1.attrib['def']
-    print("False")
-    
-    tree2.write(out_tbstyle, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
 
 def deck_handler(id, msg, deck, dict_2):
@@ -774,7 +785,7 @@ def deck_handler(id, msg, deck, dict_2):
     rels_list = get_rels(dict_1)
     update_rels(rels_list, tmp_loc, dict_1)
     presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
-    # copy_extras(file_name)
+    handle_configs(tmp_loc)
     
 
 
@@ -785,9 +796,9 @@ if __name__ == '__main__':
     dict_1 = OrderedDict()
     dict_2 = OrderedDict()
     
-    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
-    sample_msg = [41, {'d': 'Onboarding', 's':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
     # sample_msg = [41, {'d': 'Presentation1', 's': None}]
     # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
     # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}]
