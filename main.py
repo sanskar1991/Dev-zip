@@ -223,7 +223,8 @@ def add_files(path, file_name, target_files, slides=None):
                 if '../' in i["@Target"]:
                     target_files.append(i['@Target'][3:])
                 else:
-                    target_files.append(i['@Target'])
+                    new_tar = path.split('/')[-3]
+                    target_files.append(f'{new_tar}/{i["@Target"]}')
                 
                 if ".." in i['@Target'] and "xml" in i['@Target']:
                     path = f"{tmp_path}/{file_name}/ppt/{i['@Target'].split('..')[1].split('/')[1]}/_rels/{i['@Target'].split('..')[1].split('/')[2]}.rels"
@@ -281,15 +282,17 @@ def rename(path, fld, fl, dict_2): # fld=media, fl=image1.png
     
     ext = ''.join(pathlib.Path(fl).suffixes)
     name = re.findall(r'(\w+?)(\d+)', fl)[0][0]
-    
-    count = dict_2[fld]+1
+    if f'{fld}/{name}' in dict_2.keys():
+        count = dict_2[f'{fld}/{name}']+1
+    else:
+        count = 1
     new_name = f'{name}{count}{ext}'
     if 'ppt' in path:
         shutil.copy(f'{path}/{fld}/{fl}', f"{output_path}/ppt/{fld}/{new_name}")
     else:
         shutil.copy(f'{path}/{fld}/{fl}', f"{output_path}/{fld}/{new_name}")
     d1[f'{fld}/{fl}'] = f'{fld}/{new_name}'
-    dict_2[fld] = count
+    dict_2[f'{fld}/{name}'] = count
     return d1
 
 
@@ -379,7 +382,7 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
         #     if not os.path.isfile(f'{output_path}/ppt/{i}'):
         #         if os.path.isfile(f'{tmp_loc}/ppt/{i}'):
         #             shutil.copyfile(f'{tmp_loc}/ppt/{i}', f'{output_path}/ppt/{i}')
-    
+    print("CALLING... copy_target")
     return d_1
 
 
@@ -492,7 +495,6 @@ def update_rId(dict_2, files1, dict_3):
         dict_3[i] = val
         
     dict_2['rId'] = max_rId
-    # create_json(d1, 'dict_6')
     return dict_2, dict_3, d1
 
 
@@ -710,6 +712,7 @@ def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     create_json(prep_rels_rIds, '04_prep_rels_rIds')
     
     write_pres(tmp_loc, d1, rels_rIds)
+    return dict_2
 
 
 def handle_configs(tmp_loc):
@@ -746,8 +749,6 @@ def handle_configs(tmp_loc):
                 shutil.copyfile(inp_fl, out_fl)
     
 
-
-
 def deck_handler(id, msg, deck, dict_2):
     """
     handle the deck and select files for output deck
@@ -772,20 +773,22 @@ def deck_handler(id, msg, deck, dict_2):
     
     target_files = add_files(inp_pres_rels, file_name, target_files, slides)
     # print("TARGET: ", target_files)
-    dict_2.update(list_target(target_files, dict_2))
+    # dict_2.update(list_target(target_files, dict_2))
+    
     dict_1 = copy_target(target_files, file_name, tmp_loc, dict_2)
     d1, d2 = copy_mandatory(tmp_loc, f'{output_path}/ppt', deck, dict_1)
     dict_1.update(d1)
     dict_2.update(d2)
-    
-    create_json(dict_1, '01_refactoring_names')
-    create_json(dict_2, '02_refactoring_count')
 
     # modify the rels files
     rels_list = get_rels(dict_1)
     update_rels(rels_list, tmp_loc, dict_1)
-    presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
+    dict_2 = presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     handle_configs(tmp_loc)
+    
+    create_json(dict_1, '01_refactoring_names')
+    create_json(dict_2, '02_refactoring_count')
+    
     
 
 
@@ -796,9 +799,9 @@ if __name__ == '__main__':
     dict_1 = OrderedDict()
     dict_2 = OrderedDict()
     
-    sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
-    # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
+    sample_msg = [41, {'d': 'Onboarding', 's':  None}]
     # sample_msg = [41, {'d': 'Presentation1', 's': None}]
     # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
     # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}]

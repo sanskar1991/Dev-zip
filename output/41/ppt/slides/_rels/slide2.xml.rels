@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://logic20201.sharepoint.com/:o:/s/BingAAIGProject/Ejvx7hjxn0lHtUo4vfaiaP4BEqtcsXRx2dRRMVzhkY0ffQ?e=H3UQgg" TargetMode="External"/>
-  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://teams.microsoft.com/l/team/19%3aacb845bd2c634b9d81c9b08876658b22%40thread.skype/conversations?groupId=fbe6b50e-a75b-4c00-b9f3-6b713ae60734&amp;tenantId=d513ec41-c5ae-4017-810e-fdca680bdc77" TargetMode="External"/>
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout3.xml"/>
-  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://aaigtracker.visualstudio.com/AAIG%20Query%20Classifier/_git/QueryClassifierUI" TargetMode="External"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image8.png"/>
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout11.xml"/>
 </Relationships>

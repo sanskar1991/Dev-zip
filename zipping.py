@@ -1,6 +1,15 @@
 import zipfile
 import os
 
+def unzip(src, des):
+    """
+    unzip the deck
+    """
+    with zipfile.ZipFile(src, 'r') as zip_ref:
+        zip_ref.extractall(des)
+    return
+
+
 
 def zipdir(path, file_name):
     """
@@ -15,6 +24,8 @@ def zipdir(path, file_name):
     zipf.close()
     return
 
-path = 'tmp/41/presentation1'
+# path = 'tmp/41/presentation1'
 path = 'tmp/41/Onboarding'
-zipdir(path, "Test")
+prep_path = 'presentations/Onboarding.pptx'
+# unzip(prep_path, path)
+zipdir(path, "Test1")

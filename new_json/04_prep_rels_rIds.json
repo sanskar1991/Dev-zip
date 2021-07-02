@@ -5,8 +5,14 @@
     "viewProps.xml": [
         "rId4"
     ],
+    "theme/theme1.xml": [
+        "rId47"
+    ],
     "tableStyles.xml": [
         "rId6"
+    ],
+    "slideMasters/slideMaster1.xml": [
+        "rId15"
     ],
     "printerSettings/printerSettings1.bin": [
         "rId2"
@@ -35,9 +41,6 @@
     "revisionInfo.xml": [
         "rId14"
     ],
-    "slideMasters/slideMaster1.xml": [
-        "rId15"
-    ],
     "slideMasters/slideMaster2.xml": [
         "rId16"
     ],
@@ -56,19 +59,79 @@
     "slides/slide3.xml": [
         "rId21"
     ],
-    "theme/theme1.xml": [
+    "slides/slide4.xml": [
         "rId22"
     ],
-    "slideMasters/slideMaster5.xml": [
+    "slides/slide5.xml": [
         "rId23"
     ],
-    "slides/slide4.xml": [
+    "slides/slide6.xml": [
         "rId24"
     ],
-    "slides/slide5.xml": [
+    "slides/slide7.xml": [
         "rId25"
     ],
-    "theme/theme7.xml": [
+    "slides/slide8.xml": [
         "rId26"
+    ],
+    "slides/slide9.xml": [
+        "rId27"
+    ],
+    "slides/slide10.xml": [
+        "rId28"
+    ],
+    "slides/slide11.xml": [
+        "rId29"
+    ],
+    "slides/slide12.xml": [
+        "rId30"
+    ],
+    "slides/slide13.xml": [
+        "rId31"
+    ],
+    "slides/slide14.xml": [
+        "rId32"
+    ],
+    "slides/slide15.xml": [
+        "rId33"
+    ],
+    "slides/slide16.xml": [
+        "rId34"
+    ],
+    "slides/slide17.xml": [
+        "rId35"
+    ],
+    "slides/slide18.xml": [
+        "rId36"
+    ],
+    "slides/slide19.xml": [
+        "rId37"
+    ],
+    "slides/slide20.xml": [
+        "rId38"
+    ],
+    "slides/slide21.xml": [
+        "rId39"
+    ],
+    "slides/slide22.xml": [
+        "rId40"
+    ],
+    "slides/slide23.xml": [
+        "rId41"
+    ],
+    "slides/slide24.xml": [
+        "rId42"
+    ],
+    "slides/slide25.xml": [
+        "rId43"
+    ],
+    "slides/slide26.xml": [
+        "rId44"
+    ],
+    "slides/slide27.xml": [
+        "rId45"
+    ],
+    "slides/slide28.xml": [
+        "rId46"
     ]
 }
