@@ -179,6 +179,22 @@ def make_structure(file_name):
     return
 
 
+def get_fld_fl(file):
+    """
+    returns folder anme and file name
+    """
+    if '_rels' in file: # slides/_rels/slide2.xml.rels
+        sp = file.split('/')
+        fl_name = sp[-1]
+        fld_name = f'{sp[0]}/{sp[1]}'
+    elif '../' in file:
+        _,fld_name,fl_name = file.split('/')
+    else:
+        fld_name,fl_name = file.split('/')
+    
+    return fld_name, fl_name
+
+
 def add_files(path, file_name, target_files, slides=None):
     """
     returns a list of files that needs to be modified in output deck
@@ -237,27 +253,10 @@ def add_files(path, file_name, target_files, slides=None):
     return target_files
 
 
-def get_fld_fl(file):
-    """
-    returns folder anme and file name
-    """
-    if '_rels' in file: # slides/_rels/slide2.xml.rels
-        sp = file.split('/')
-        fl_name = sp[-1]
-        fld_name = f'{sp[0]}/{sp[1]}'
-    elif '../' in file:
-        _,fld_name,fl_name = file.split('/')
-    else:
-        fld_name,fl_name = file.split('/')
-    
-    return fld_name, fl_name
-
-
 def list_target(target_files, d2):
     """
     creates a dict with number of files
     """
-    # d2 = OrderedDict()
     count = 0
     for file in target_files:
         if '/' in file:
@@ -303,16 +302,15 @@ def del_files(rels_fl, last_fl, path):
     for i in rels_fl:
         if i[:-5] not in last_fl:
             os.remove(f'{path}/{i}')
+    return
 
 
 def copy_mandatory(src, des, deck, dict_1):
     """
     copy mandatory files
     """
-    # print("SRC: ", src, "\nDES: ", des)
     print("COPY MANDATORY CALLING")
     m_list = ['slideLayouts', 'theme', 'slideMasters']
-    # d1 = OrderedDict()
     if deck == 1:
         for fl in m_list:
             count = 0
@@ -331,14 +329,11 @@ def copy_mandatory(src, des, deck, dict_1):
                 for j in fl_list:
                     dict_1[f'{fld}/{j}'] = f'{fld}/{j}'
     else:
-        # print("SSSS: ", dict_2)
         for i in m_list:
             if os.path.exists(f'{des}/{i}'):
                 for j in os.walk(f'{src}/ppt/{i}'):
-                    # j = (path, [folder], [file])
                     fld = j[0].split('ppt/')[1]
                     
-                    # print("TTT: ", fld, "--", j[2]) # array
                     fl_list = natsort.natsorted(j[2])
                     for x in fl_list:
                         ext = ''.join(pathlib.Path(x).suffixes)
@@ -354,10 +349,6 @@ def copy_mandatory(src, des, deck, dict_1):
     for i in os.walk(des):
         if not i[2]:
             shutil.rmtree(i[0])
-
-    
-    print("MANDATORY DONE!!")
-    
     
     return dict_1, dict_2
 
@@ -430,7 +421,6 @@ def get_relations(inp_path, file_name, slides):
 
     for relation in root1:
         attrib = relation.attrib
-        # print("ATTRIB: ", attrib)
         current_rId = int(attrib.get('Id').split('Id')[-1])
         if (first_slide_id > current_rId) or (current_rId > (first_slide_id+tot_slides-1)):
             files1.append(attrib["Target"])
@@ -538,11 +528,7 @@ def create_tags(tag_dict, o_tree):
         #     pass
         subtag1 = o_tree.find(o[0])
         subtag2 = etree.Element(i)
-        # for ele in elements:
-        #     subtext = etree.SubElement(subtag2, ele)
-        # subtext = etree.SubElement(subtag2)
         subtag1.addnext(subtag2)
-
     o_tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
     
     return 
@@ -582,7 +568,8 @@ def get_prep_tags(src_xml, d1):
             attrib = ele.attrib
             tag = ele.tag
             try:
-                if attrib.get(f"{{{nmsps}}}id"):
+                if attrib[f"{{{nmsps}}}id"]:
+                # if attrib.get(f"{{{nmsps}}}id"):
                     if attrib.get(f"{{{nmsps}}}id") in rId_lis:
                         if relation.tag in d2:
                             val = d2[relation.tag]
@@ -591,8 +578,11 @@ def get_prep_tags(src_xml, d1):
                         else:
                             d2[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
             except:
-                pass
+                print("ZZZZ: ", relation.tag)
+    return
 
+    
+    
     d2 = modify_d2(d1, d2)
     create_json(d2, 'prepXmlSubtag')
     return d2
@@ -602,6 +592,7 @@ def add_subtags(path, pxml_subtags):
     """
     add subtags in the presentation.xml file
     """
+    print("CALLING... add_subtag")
     root, tree = gen_tree(path)
     nmsps =  root.nsmap['r']
     for k,v in pxml_subtags.items():
@@ -675,6 +666,30 @@ def rel_duplicates():
     return d1, rels_rIds
 
 
+def scan_sldsz(src_xml, des_xml):
+    """
+    scan slide size for templating
+    """
+    _,i_tree = gen_tree(src_xml)
+    _,o_tree = gen_tree(des_xml)
+    
+    tag = "{http://schemas.openxmlformats.org/presentationml/2006/main}sldSz"
+    
+    inp_sldsz = i_tree.find(tag).attrib
+    cx = inp_sldsz['cx']
+    cy = inp_sldsz['cy']
+    Type = inp_sldsz.get('type')
+    out_sldsz = o_tree.find(tag).attrib
+    
+    if out_sldsz['cx']!=cx or out_sldsz['cy']!=cy:
+        out_sldsz['cx'] = cx
+        out_sldsz['cy'] = cy
+    if not Type:
+        del out_sldsz['type']
+    o_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    return
+
+
 def write_pres(tmp_loc, d1, rels_rIds):
     """
     update the presentation.xml file
@@ -692,9 +707,12 @@ def write_pres(tmp_loc, d1, rels_rIds):
     create_tags(tag_dict, out_tree)
     
     pxml_subtags = get_prep_tags(src_xml, d1)
+    
     create_json(pxml_subtags, '05_pxml_subtag')
     clean_prep_xml(des_xml, rels_rIds, pxml_subtags)
     add_subtags(des_xml, pxml_subtags)
+    scan_sldsz(src_xml, des_xml)
+    return
 
 
 def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc):
@@ -747,6 +765,7 @@ def handle_configs(tmp_loc):
                 tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8')
             else:
                 shutil.copyfile(inp_fl, out_fl)
+    return
     
 
 def deck_handler(id, msg, deck, dict_2):
@@ -788,6 +807,7 @@ def deck_handler(id, msg, deck, dict_2):
     
     create_json(dict_1, '01_refactoring_names')
     create_json(dict_2, '02_refactoring_count')
+    return
     
     
 
@@ -801,18 +821,16 @@ if __name__ == '__main__':
     
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
-    sample_msg = [41, {'d': 'Onboarding', 's':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
     # sample_msg = [41, {'d': 'Presentation1', 's': None}]
-    # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
+    sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
     # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}]
 
     render_id = sample_msg.pop(0)
     
     output_path = f'{base_path}/output/{str(render_id)}'
     tmp_path = f'{base_path}/tmp/{render_id}'
-    input_decks = f'{base_path}/presentations'
-    
-    # print("TMP_PATH:", tmp_path, '\nOUT_PATH: ', output_path)  
+    input_decks = f'{base_path}/presentations' 
 
     try:
         os.makedirs(output_path)
@@ -830,4 +848,5 @@ if __name__ == '__main__':
         deck_handler(render_id, sample_msg.pop(0), deck, dict_2)
         deck += 1
 
+    # zip the output folder
     zipdir(f'{output_path}', "Test")
