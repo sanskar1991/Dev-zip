@@ -20,8 +20,8 @@ from lxml import etree
 #     root2.append()
     
 import lxml.etree as ET
-filename = "inp_tableStyles.xml"
-appendtoxml = "out_tableStyles.xml"
+filename = "presentation.xml"
+appendtoxml = "presentation copy.xml"
 output_file = appendtoxml.replace('.xml', '') + "_editedbyed.xml"
 
 parser = ET.XMLParser(remove_blank_text=True)
@@ -30,21 +30,36 @@ root = tree.getroot()
 
 # for i in root:
 #     print("TAG: ", i.tag)
-nmsps = root.nsmap['a']
+# nmsps = root.nsmap['a']
 out_tree = ET.parse(appendtoxml, parser)
 out_root = out_tree.getroot()
 
-print("TTT: ", root[0].tag)
-
 for i in root:
-    print("II: ", i)
-    print("LL: ", i.tag)
-for path in [f"{root[0].tag}"]:
-# for path in [f".//{{{nmsps}}}tblStyle"]:
-    for elt in root.findall(path):
-        out_root.append(elt)
-
+    if 'sldSz' in i.tag:
+        a = i
+        attrib = a.attrib
+        # print("ATTRIB: ", attrib)
+        cx = attrib['cx']
+        cy = attrib['cy']
+subtag1 = out_tree.find(a.tag)
+cxx = subtag1.attrib['cx']
+cyy = subtag1.attrib['cy']
+if cx != cxx:
+    subtag1.attrib['cx'] = cx
+    subtag1.attrib['cy'] = cy
 out_tree.write(output_file, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+# print("SS: ", subtag1.tag)
+
+# for i in root:
+#     print("II: ", i)
+#     print("LL: ", i.tag)
+# for path in [f"{root[0].tag}"]:
+# # for path in [f".//{{{nmsps}}}tblStyle"]:
+#     for elt in root.findall(path):
+#         out_root.append(elt)
+
+# out_tree.write(output_file, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 # import os
 # print("HHH: ", os.listdir('..'))
 # print()
