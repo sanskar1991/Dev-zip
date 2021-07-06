@@ -80,7 +80,7 @@ def total_slides(path):
     """
     returns total number of slides
     """
-    print("CALLING.. total_slides")
+    # print("CALLING.. total_slides")
     prs = Presentation(path)
     tot_slides = len(prs.slides._sldIdLst)
     return tot_slides
@@ -90,7 +90,7 @@ def first_slide(path):
     """
     returns the first slide rId
     """
-    print("CALLING.. First_slide")
+    # print("CALLING.. First_slide")
     root, _ = gen_tree(path)
 
     slide = 'slide1.xml'
@@ -110,6 +110,30 @@ def get_rels(dict_1):
     return lis
 
 
+def add_slides(file_name):
+    """
+    returns a list of all slides
+    """
+    path = f'{input_decks}/{file_name}.pptx'
+    sld = total_slides(path)+1
+    lis = list(range(1, sld))
+    return lis
+
+
+def repair_path(dict_1):
+    """
+    replacing '\\' with '/'
+    """
+    dup_dict = dict(dict_1)
+    for k,v in dup_dict.items():
+        if '\\' in k:
+            key = k.replace('\\', '/')
+            val = v.replace('\\', '/')
+            del dict_1[k]
+            dict_1[key] = val
+    return dict_1
+
+
 def remove_dup(files1, dict_3, files2):
     """
     remove duplicates from the rels files
@@ -121,16 +145,6 @@ def remove_dup(files1, dict_3, files2):
                 files1.remove(i)
                 del dict_3[i]
     return files1   
-
-
-def add_slides(file_name):
-    """
-    returns a list of all slides
-    """
-    path = f'{input_decks}/{file_name}.pptx'
-    sld = total_slides(path)+1
-    lis = list(range(1, sld))
-    return lis
 
 
 def new(path):
@@ -161,7 +175,7 @@ def make_dir(file_name): # output_file_loc = des
             loc = f"{output_path}{fld}"
             if not os.path.exists(f'{output_path}/{fld}'):
                 os.makedirs(f'{output_path}/{fld}')
-    print("MAKE_DIR completed...")        
+    # print("MAKE_DIR completed...")        
     return
 
 
@@ -179,26 +193,11 @@ def make_structure(file_name):
     return
 
 
-def get_fld_fl(file):
-    """
-    returns folder anme and file name
-    """
-    if '_rels' in file: # slides/_rels/slide2.xml.rels
-        sp = file.split('/')
-        fl_name = sp[-1]
-        fld_name = f'{sp[0]}/{sp[1]}'
-    elif '../' in file:
-        _,fld_name,fl_name = file.split('/')
-    else:
-        fld_name,fl_name = file.split('/')
-    
-    return fld_name, fl_name
-
-
 def add_files(path, file_name, target_files, slides=None):
     """
     returns a list of files that needs to be modified in output deck
     """
+    # print("CALLING.. Add_files")
     data = xml_to_dict(path)
     
     if slides:
@@ -251,6 +250,22 @@ def add_files(path, file_name, target_files, slides=None):
                         add_files(path, file_name, target_files)
 
     return target_files
+
+
+def get_fld_fl(file):
+    """
+    returns folder anme and file name
+    """
+    if '_rels' in file: # slides/_rels/slide2.xml.rels
+        sp = file.split('/')
+        fl_name = sp[-1]
+        fld_name = f'{sp[0]}/{sp[1]}'
+    elif '../' in file:
+        _,fld_name,fl_name = file.split('/')
+    else:
+        fld_name,fl_name = file.split('/')
+    
+    return fld_name, fl_name
 
 
 def list_target(target_files, d2):
@@ -309,7 +324,7 @@ def copy_mandatory(src, des, deck, dict_1):
     """
     copy mandatory files
     """
-    print("COPY MANDATORY CALLING")
+    # print("COPY MANDATORY CALLING")
     m_list = ['slideLayouts', 'theme', 'slideMasters']
     if deck == 1:
         for fl in m_list:
@@ -325,6 +340,8 @@ def copy_mandatory(src, des, deck, dict_1):
             
             for i in os.walk(f'{src}/ppt/{fl}'):
                 fld = i[0].split('ppt/')[1]
+                if '\\' in fld:
+                    fld = fld.replace('\\', '/')
                 fl_list = natsort.natsorted(i[2])
                 for j in fl_list:
                     dict_1[f'{fld}/{j}'] = f'{fld}/{j}'
@@ -333,6 +350,8 @@ def copy_mandatory(src, des, deck, dict_1):
             if os.path.exists(f'{des}/{i}'):
                 for j in os.walk(f'{src}/ppt/{i}'):
                     fld = j[0].split('ppt/')[1]
+                    if '\\' in fld:
+                        fld = fld.replace('\\', '/')
                     
                     fl_list = natsort.natsorted(j[2])
                     for x in fl_list:
@@ -373,7 +392,7 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
         #     if not os.path.isfile(f'{output_path}/ppt/{i}'):
         #         if os.path.isfile(f'{tmp_loc}/ppt/{i}'):
         #             shutil.copyfile(f'{tmp_loc}/ppt/{i}', f'{output_path}/ppt/{i}')
-    print("CALLING... copy_target")
+    # print("CALLING... copy_target")
     return d_1
 
 
@@ -512,9 +531,6 @@ def xml_tag(inp_tag, out_tag):
     sub_tag = OrderedDict()
     for i in range(len(inp_tag)):
         if inp_tag[i] not in out_tag:
-            # if i == 0:
-            #     tag_dict[inp_tag[i]] = [0]
-            # else:
             tag_dict[inp_tag[i]] = [inp_tag[i-1]]
     return tag_dict
 
@@ -524,8 +540,6 @@ def create_tags(tag_dict, o_tree):
     creates empty tags in presentation.xml
     """
     for i, o in tag_dict.items():
-        # if o[0] == 0:
-        #     pass
         subtag1 = o_tree.find(o[0])
         subtag2 = etree.Element(i)
         subtag1.addnext(subtag2)
@@ -541,58 +555,80 @@ def modify_d2(d1, d2):
     val_list = [i for i in d2.keys()]
     
     for key in val_list:
-        # val = d2[key]
         for i in range(len(d2[key])):
-            val = d1[d2[key][i][2]]
-            d2[key][i][2] = val
-            if None in d2[key][i]:
-                d2[key][i].remove(None)
-    
+            try:
+                val = d1[d2[key][i][2]]
+                d2[key][i][2] = val
+                if None in d2[key][i]:
+                    d2[key][i].remove(None)
+            except:
+                pass
     return d2
             
+            
+def add_extLst(src_xml, des_xml, ext_lst):
+    """
+    adding extlst subelements in prep.xml file
+    """
+    inp_root,_ = gen_tree(src_xml)
+    out_root, out_tree = gen_tree(des_xml)
+    
+    for i in ext_lst:
+        for relation in [f"{i}"]:
+            for elt in inp_root.findall(relation):
+                out_root.append(elt)
+    
+    out_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    return
+         
 
 def get_prep_tags(src_xml, d1):
     """
-    get tags and subtags form input presentation.xml
+    get tags and subtags from input presentation.xml
     returns a dict with tags and subtags for presentation.xml
     """
     root, tree = gen_tree(src_xml)
-    
     d2 = OrderedDict()
     # list of old rIds
     rId_lis = [i for i in d1.keys()]
     nmsps =  root.nsmap['r']
+    ext_lst = []
     
     for relation in root:
         for ele in relation:
             attrib = ele.attrib
             tag = ele.tag
-            try:
-                if attrib[f"{{{nmsps}}}id"]:
-                # if attrib.get(f"{{{nmsps}}}id"):
-                    if attrib.get(f"{{{nmsps}}}id") in rId_lis:
-                        if relation.tag in d2:
-                            val = d2[relation.tag]
-                            val.append([tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")])
-                            d2[relation.tag] = val
-                        else:
-                            d2[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
-            except:
-                print("ZZZZ: ", relation.tag)
-    return
-
-    
-    
+            # try:
+            # if attrib[f"{{{nmsps}}}id"]:
+            if attrib.get(f"{{{nmsps}}}id"):
+                if attrib.get(f"{{{nmsps}}}id") in rId_lis:
+                    if relation.tag in d2:
+                        val = d2[relation.tag]
+                        val.append([tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")])
+                        d2[relation.tag] = val
+                    else:
+                        d2[relation.tag] = [[tag, attrib.get('id'), attrib.get(f"{{{nmsps}}}id")]]
+            else:
+                if 'uri' in ele.attrib:
+                    if relation.tag not in ext_lst:
+                        ext_lst.append(relation.tag)
+                    # print("ELE11: ", ele)
+                    # extLst.append(ele)
+                    # if relation.tag in d2:
+                    #     val = d2[relation.tag]
+                    #     val.append(ele)
+                    #     d2[relation.tag] = val
+                    # else:
+                    #     d2[relation.tag] = [ele]
     d2 = modify_d2(d1, d2)
-    create_json(d2, 'prepXmlSubtag')
-    return d2
+    return d2, ext_lst
 
 
 def add_subtags(path, pxml_subtags):
     """
     add subtags in the presentation.xml file
     """
-    print("CALLING... add_subtag")
+    # print("CALLING... add_subtag")
     root, tree = gen_tree(path)
     nmsps =  root.nsmap['r']
     for k,v in pxml_subtags.items():
@@ -680,11 +716,10 @@ def scan_sldsz(src_xml, des_xml):
     cy = inp_sldsz['cy']
     Type = inp_sldsz.get('type')
     out_sldsz = o_tree.find(tag).attrib
-    
     if out_sldsz['cx']!=cx or out_sldsz['cy']!=cy:
         out_sldsz['cx'] = cx
         out_sldsz['cy'] = cy
-    if not Type:
+    if not Type and out_sldsz.get('type'): # error
         del out_sldsz['type']
     o_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
     return
@@ -706,8 +741,8 @@ def write_pres(tmp_loc, d1, rels_rIds):
     tag_dict = xml_tag(inp_tag, out_tag)
     create_tags(tag_dict, out_tree)
     
-    pxml_subtags = get_prep_tags(src_xml, d1)
-    
+    pxml_subtags, ext_lst = get_prep_tags(src_xml, d1)
+    add_extLst(src_xml, des_xml, ext_lst)
     create_json(pxml_subtags, '05_pxml_subtag')
     clean_prep_xml(des_xml, rels_rIds, pxml_subtags)
     add_subtags(des_xml, pxml_subtags)
@@ -807,9 +842,7 @@ def deck_handler(id, msg, deck, dict_2):
     
     create_json(dict_1, '01_refactoring_names')
     create_json(dict_2, '02_refactoring_count')
-    return
-    
-    
+    return   
 
 
 if __name__ == '__main__':
@@ -820,10 +853,11 @@ if __name__ == '__main__':
     dict_2 = OrderedDict()
     
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  [1]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
-    # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
+    sample_msg = [41, {'d': 'Onboarding', 's':  None}]
     # sample_msg = [41, {'d': 'Presentation1', 's': None}]
-    sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
+    # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}] # working
     # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}]
 
     render_id = sample_msg.pop(0)
