@@ -313,6 +313,7 @@ def rename(path, fld, fl, dict_2): # fld=media, fl=image1.png
 def del_files(rels_fl, last_fl, path):
     """
     delete extra files
+    Not using this funct anywhere
     """
     for i in rels_fl:
         if i[:-5] not in last_fl:
@@ -418,7 +419,7 @@ def update_rels(fl_list, tmp_loc, dict_1):
             attrib = relation.attrib
             if attrib.get('Target')[3:] in old_files:
                 relation.set('Target', f"../{dict_1[attrib.get('Target')[3:]]}")
-        tree.write(f'{path}/{i}', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        tree.write(f'{path}/{i}', pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
 
 
@@ -519,7 +520,7 @@ def write_rels(dict_3, files1):
         tag, Id, Type, target = val
         ele = etree.Element(tag)
         etree.SubElement(root, tag, Id=Id, Type=Type, Target=target)
-    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
         
 
@@ -543,7 +544,7 @@ def create_tags(tag_dict, o_tree):
         subtag1 = o_tree.find(o[0])
         subtag2 = etree.Element(i)
         subtag1.addnext(subtag2)
-    o_tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    o_tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     
     return 
    
@@ -566,19 +567,23 @@ def modify_d2(d1, d2):
     return d2
             
             
-def add_extLst(src_xml, des_xml, ext_lst):
+def add_extLst(src_xml, des_xml, ext_lst, tag_dict):
     """
     adding extlst subelements in prep.xml file
     """
     inp_root,_ = gen_tree(src_xml)
     out_root, out_tree = gen_tree(des_xml)
     
-    for i in ext_lst:
-        for relation in [f"{i}"]:
-            for elt in inp_root.findall(relation):
-                out_root.append(elt)
-    
-    out_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    for relation in ext_lst:
+        
+        # if relation in tag_dict.keys():
+        #     print("JJJ: ", relation)
+        #     print("PPP: ", tag_dict[relation])
+        for elt in inp_root.findall(relation):
+            # print("ELE: ", elt.tag)
+            out_root.append(elt)
+
+    out_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
          
 
@@ -642,7 +647,7 @@ def add_subtags(path, pxml_subtags):
             else:
                 subtext = etree.SubElement(subtag1, i[0])
                 subtext.attrib[rId] = i[1]
-    tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
 
 
@@ -660,7 +665,8 @@ def clean_prep_xml(des_xml, rels_rIds, pxml_subtags):
             if i.attrib.get(rId):
                 if i.attrib.get(rId) not in rels_rIds:
                     subtag1.remove(i)
-    tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+    tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
 
 
@@ -698,7 +704,7 @@ def rel_duplicates():
     
     rels_rIds = [relation.attrib['Id'] for relation in root]
         
-    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return d1, rels_rIds
 
 
@@ -721,7 +727,7 @@ def scan_sldsz(src_xml, des_xml):
         out_sldsz['cy'] = cy
     if not Type and out_sldsz.get('type'): # error
         del out_sldsz['type']
-    o_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    o_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
 
 
@@ -742,7 +748,7 @@ def write_pres(tmp_loc, d1, rels_rIds):
     create_tags(tag_dict, out_tree)
     
     pxml_subtags, ext_lst = get_prep_tags(src_xml, d1)
-    add_extLst(src_xml, des_xml, ext_lst)
+    # add_extLst(src_xml, des_xml, ext_lst, tag_dict)
     create_json(pxml_subtags, '05_pxml_subtag')
     clean_prep_xml(des_xml, rels_rIds, pxml_subtags)
     add_subtags(des_xml, pxml_subtags)
@@ -797,11 +803,104 @@ def handle_configs(tmp_loc):
                 except:
                     pass
                 
-                tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+                tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
             else:
                 shutil.copyfile(inp_fl, out_fl)
     return
+
+
+def handle_cleaning():
+    """
+    remove unnecessary files 
+    like changesInfos, printerSettings
+    """
+    extra_fl = ['changesInfos', 'printerSettings']
+    fld_path = f'{output_path}/ppt'
+    out_rel_path = f'{fld_path}/_rels/presentation.xml.rels'
+    root, tree = gen_tree(out_rel_path)
     
+    for i in extra_fl:
+        shutil.rmtree(f'{fld_path}/{i}')
+    
+        for relation in root:
+            attrib = relation.attrib
+            if i in attrib['Target']:
+                root.remove(relation)
+    
+    tree.write(out_rel_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+    return
+    
+
+def content(tmp_loc):
+    """
+    add content_type in [Contant_Types].xml file
+    """
+    fl = '[Content_Types].xml'
+    inp_path = '/'.join([tmp_loc, fl])
+    out_path = '/'.join([output_path, fl])
+    # print("DDD: ", out_path)
+    root1,tree1 = gen_tree(inp_path)
+    root2,tree2 = gen_tree(out_path)
+    
+    default = OrderedDict()
+    override = OrderedDict()
+    
+    for relation in root1:
+        attrib = relation.attrib
+        if 'Default' in relation.tag:
+            default[attrib['Extension']] = relation
+        elif 'Override' in relation.tag:
+            override[attrib['PartName']] = relation
+    # print("DEF_DICT1: ", default.keys())
+    # print()
+    # print("OVER_DICT: ", override.keys())
+    # print()
+    for relation in root2:
+        attrib = relation.attrib
+        if 'Default' in relation.tag:
+            if attrib['Extension'] in default.keys():
+                # del default[attrib['Extension']]
+                pass
+            else:
+                relation.append(default[attrib['Extension']])
+        else:
+            if attrib['PartName'] in override.keys():
+                # del override[attrib['PartName']]
+                pass
+            else:
+                relation.append(override[attrib['PartName']])
+    
+    tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+    
+    
+    
+    # for relation in [f"{root1[0].tag}"]:
+    #     for elt in root1.findall(relation):
+    #         root2.append(elt)
+                
+                
+            
+        # print('relation.attrib:  ', relation.attrib)
+    #     if relation.tag in it_dict.keys():
+    #         val = it_dict[relation.tag]
+    #         val.append(relation)
+    #         it_dict[relation.tag] = val
+    #     else:
+    #         it_dict[relation.tag] = [relation]
+            
+    # for relation in root2:
+    #     # if 
+    #     pass
+    # for relation in root2:
+    #     if relation.tag in ot_dict.keys():
+    #         val = ot_dict[relation.tag]
+    #         val.append(relation)
+    #         ot_dict[relation.tag] = val
+    #     else:
+    #         ot_dict[relation.tag] = [relation]
+    
+    # print("REL: ", tag_dict)
+
 
 def deck_handler(id, msg, deck, dict_2):
     """
@@ -839,6 +938,8 @@ def deck_handler(id, msg, deck, dict_2):
     update_rels(rels_list, tmp_loc, dict_1)
     dict_2 = presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     handle_configs(tmp_loc)
+    handle_cleaning()
+    content(tmp_loc)
     
     create_json(dict_1, '01_refactoring_names')
     create_json(dict_2, '02_refactoring_count')
