@@ -831,81 +831,75 @@ def handle_cleaning():
     return
     
 
-def content(tmp_loc):
+def content(tmp_loc, ref_names_dict, order):
     """
     add content_type in [Contant_Types].xml file
     """
+    
     fl = '[Content_Types].xml'
     inp_path = '/'.join([tmp_loc, fl])
     out_path = '/'.join([output_path, fl])
-    # print("DDD: ", out_path)
+    
+    cnt_lst = []
+    asset_lst = []
+    def_att = []
+    d = dict()
+    
     root1,tree1 = gen_tree(inp_path)
     root2,tree2 = gen_tree(out_path)
     
-    default = OrderedDict()
-    override = OrderedDict()
+    # get all the extensions belongs to "Default" tag
+    for relation in root2:
+        if 'Default' in relation.tag:
+            def_att.append(relation.attrib['Extension'])
+        else:
+            break
     
     for relation in root1:
-        attrib = relation.attrib
-        if 'Default' in relation.tag:
-            default[attrib['Extension']] = relation
-        elif 'Override' in relation.tag:
-            override[attrib['PartName']] = relation
-    # print("DEF_DICT1: ", default.keys())
-    # print()
-    # print("OVER_DICT: ", override.keys())
-    # print()
-    for relation in root2:
-        attrib = relation.attrib
-        if 'Default' in relation.tag:
-            if attrib['Extension'] in default.keys():
-                # del default[attrib['Extension']]
-                pass
+        if 'Override' in relation.tag:
+            attrib = relation.attrib['PartName'][1:]
+            try:
+                cnt = attrib.split('ppt/')[-1]
+                ini = '/ppt/'
+            except:
+                cnt = attrib
+                ini = '/'
+            if cnt in ref_names_dict.keys():
+                relation.attrib['PartName'] = f'{ini}{ref_names_dict[cnt]}'
+                cnt_lst.append(relation)
+                asset_lst.append(relation.attrib['PartName'])
             else:
-                relation.append(default[attrib['Extension']])
+                cnt_lst.append(relation)
+                asset_lst.append(relation.attrib['PartName'])
         else:
-            if attrib['PartName'] in override.keys():
-                # del override[attrib['PartName']]
-                pass
-            else:
-                relation.append(override[attrib['PartName']])
+            attrib = relation.attrib['Extension']
+            if attrib not in def_att:
+                cnt_lst.append(relation)
+                asset_lst.append(relation.attrib['Extension'])
+        # deal with the assest_lst
+    print("AA: ", asset_lst)
+    cnt_lst = natsort.natsorted(cnt_lst)
+    for ele in cnt_lst:
+        prev = tree2.find(ele.tag)
+        prev.addnext(ele)
     
     tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     
-    
-    
-    # for relation in [f"{root1[0].tag}"]:
-    #     for elt in root1.findall(relation):
-    #         root2.append(elt)
-                
-                
-            
-        # print('relation.attrib:  ', relation.attrib)
-    #     if relation.tag in it_dict.keys():
-    #         val = it_dict[relation.tag]
-    #         val.append(relation)
-    #         it_dict[relation.tag] = val
-    #     else:
-    #         it_dict[relation.tag] = [relation]
-            
-    # for relation in root2:
-    #     # if 
-    #     pass
-    # for relation in root2:
-    #     if relation.tag in ot_dict.keys():
-    #         val = ot_dict[relation.tag]
-    #         val.append(relation)
-    #         ot_dict[relation.tag] = val
-    #     else:
-    #         ot_dict[relation.tag] = [relation]
-    
-    # print("REL: ", tag_dict)
+    unq_attr = []
+    for relation in root2:
+        if 'Override' in relation.tag:
+            if relation.attrib['PartName'] not in unq_attr:
+                unq_attr.append(relation.attrib['PartName'])
+            else:
+                root2.remove(relation)
+    tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
 
 
 def deck_handler(id, msg, deck, dict_2):
     """
     handle the deck and select files for output deck
     """
+    global order
     file_name, slides = msg['d'], msg['s']
     target_files = []
     
@@ -937,11 +931,12 @@ def deck_handler(id, msg, deck, dict_2):
     rels_list = get_rels(dict_1)
     update_rels(rels_list, tmp_loc, dict_1)
     dict_2 = presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
+    content(tmp_loc, dict_1, order)
     handle_configs(tmp_loc)
     handle_cleaning()
-    content(tmp_loc)
     
-    create_json(dict_1, '01_refactoring_names')
+    
+    create_json(dict_1, '01_refactored_names')
     create_json(dict_2, '02_refactoring_count')
     return   
 
@@ -952,6 +947,7 @@ if __name__ == '__main__':
     print("CURRENT_DIR:", base_path)
     dict_1 = OrderedDict()
     dict_2 = OrderedDict()
+    order = []
     
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  [1]}]
@@ -980,7 +976,7 @@ if __name__ == '__main__':
     # iterating all the messages
     deck = 1
     while sample_msg:
-        deck_handler(render_id, sample_msg.pop(0), deck, dict_2)
+        order = deck_handler(render_id, sample_msg.pop(0), deck, dict_2)
         deck += 1
 
     # zip the output folder
