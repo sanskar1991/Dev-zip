@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" saveSubsetFonts="1" autoCompressPictures="0">
   <p:sldMasterIdLst>
     <p:sldMasterId id="2147483753" r:id="rId15"/>
@@ -140,59 +140,4 @@
     </a:lvl9pPr>
   </p:defaultTextStyle>
   <p:extLst/>
-  <p:extLst>
-    <p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">
-      <p14:sectionLst xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">
-        <p14:section name="Default Section" id="{D099577E-712D-4EEC-AB96-37F686AB834A}">
-          <p14:sldIdLst>
-            <p14:sldId id="2209"/>
-            <p14:sldId id="329"/>
-            <p14:sldId id="2258"/>
-            <p14:sldId id="2268"/>
-            <p14:sldId id="2265"/>
-            <p14:sldId id="1157"/>
-            <p14:sldId id="1163"/>
-            <p14:sldId id="1162"/>
-            <p14:sldId id="1159"/>
-            <p14:sldId id="2259"/>
-            <p14:sldId id="2260"/>
-            <p14:sldId id="2264"/>
-            <p14:sldId id="2255"/>
-            <p14:sldId id="1186"/>
-            <p14:sldId id="939"/>
-            <p14:sldId id="2256"/>
-            <p14:sldId id="2257"/>
-            <p14:sldId id="2266"/>
-            <p14:sldId id="921"/>
-            <p14:sldId id="922"/>
-            <p14:sldId id="2267"/>
-            <p14:sldId id="2261"/>
-            <p14:sldId id="1190"/>
-            <p14:sldId id="1194"/>
-            <p14:sldId id="2262"/>
-            <p14:sldId id="2263"/>
-            <p14:sldId id="1196"/>
-            <p14:sldId id="1197"/>
-          </p14:sldIdLst>
-        </p14:section>
-      </p14:sectionLst>
-    </p:ext>
-    <p:ext uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}">
-      <p15:sldGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">
-        <p15:guide id="1" orient="horz" pos="2160" userDrawn="1">
-          <p15:clr>
-            <a:srgbClr val="A4A3A4"/>
-          </p15:clr>
-        </p15:guide>
-        <p15:guide id="2" pos="3839" userDrawn="1">
-          <p15:clr>
-            <a:srgbClr val="A4A3A4"/>
-          </p15:clr>
-        </p15:guide>
-      </p15:sldGuideLst>
-    </p:ext>
-    <p:ext uri="{2D200454-40CA-4A62-9FC3-DE9A4176ACB9}">
-      <p15:notesGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"/>
-    </p:ext>
-  </p:extLst>
 </p:presentation>

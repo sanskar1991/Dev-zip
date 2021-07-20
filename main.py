@@ -782,30 +782,54 @@ def handle_configs(tmp_loc):
     out_path = f'{output_path}/ppt'
     
     config_fls = [i for i in os.listdir(inp_path) if os.path.isfile(f'{inp_path}/{i}')]
-    
+    # print("CCC: ", config_fls)
     mergables = ['commentAuthors.xml', 'tableStyles.xml']
     sing_prop = ['viewProps.xml', 'presProps.xml']
     ignore = ['revisionInfo.xml']
     
     for i in config_fls:
-        if i in mergables:
-            
-            inp_fl = f'{inp_path}/{i}'
-            out_fl = f'{out_path}/{i}'
-            if os.path.isfile(f'{out_path}/{i}'):
-                root1,tree1 = gen_tree(inp_fl)
-                root2,tree2 = gen_tree(out_fl)
-                
+        inp_fl = f'{inp_path}/{i}'
+        out_fl = f'{out_path}/{i}'
+        # if i in mergables:
+        if os.path.isfile(f'{out_path}/{i}'):
+            root1,tree1 = gen_tree(inp_fl)
+            root2,tree2 = gen_tree(out_fl)
+            if i in mergables:
                 try:
                     for relation in [f"{root1[0].tag}"]:
                         for elt in root1.findall(relation):
                             root2.append(elt)
                 except:
                     pass
-                
-                tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+            elif i in sing_prop:
+                if i == 'presProps.xml':
+                    inp_d = {}
+                    out_lis = []
+                    nm = root1.nsmap['p']
+                    tag0 = f"{{{nm}}}extLst"
+                    for relation in [f"{root1[0].tag}"]:
+                        fp = root1.find(tag0)
+                        for ele in fp:
+                            attrib = ele.attrib
+                            if attrib['uri'] not in inp_d.keys():
+                                inp_d[attrib['uri']] = ele
+                    
+                    for relation in [f"{root2[0].tag}"]:
+                        fp = root2.find(tag0)
+                        for ele in fp:
+                            attrib = ele.attrib
+                            out_lis.append(attrib['uri'])
+                    for k,v in inp_d.items():
+                        if k not in out_lis:
+                            tag1 = root2.find(tag0)
+                            tag1.append(v)
             else:
-                shutil.copyfile(inp_fl, out_fl)
+                pass
+            tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+        else:
+            shutil.copyfile(inp_fl, out_fl)
+        
+            
     return
 
 
@@ -867,17 +891,18 @@ def content(tmp_loc, ref_names_dict, order):
             if cnt in ref_names_dict.keys():
                 relation.attrib['PartName'] = f'{ini}{ref_names_dict[cnt]}'
                 cnt_lst.append(relation)
-                asset_lst.append(relation.attrib['PartName'])
+                # asset_lst.append(relation.attrib['PartName'])
             else:
                 cnt_lst.append(relation)
+            if relation.attrib['PartName'] not in asset_lst:
                 asset_lst.append(relation.attrib['PartName'])
         else:
             attrib = relation.attrib['Extension']
             if attrib not in def_att:
                 cnt_lst.append(relation)
-                asset_lst.append(relation.attrib['Extension'])
+                # asset_lst.append(relation.attrib['Extension'])
         # deal with the assest_lst
-    print("AA: ", asset_lst)
+    # print("AA: ", asset_lst)
     cnt_lst = natsort.natsorted(cnt_lst)
     for ele in cnt_lst:
         prev = tree2.find(ele.tag)
