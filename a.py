@@ -258,13 +258,17 @@ def get_fld_fl(file):
     """
     returns folder anme and file name
     """
+    # print("files: ", file)
     if '_rels' in file: # slides/_rels/slide2.xml.rels
+        # print("222: ", file)
         sp = file.split('/')
         fl_name = sp[-1]
         fld_name = f'{sp[0]}/{sp[1]}'
     elif '../' in file:
+        # print("111: ", file)
         _,fld_name,fl_name = file.split('/')
     else:
+        # print("333: ", file)
         fld_name,fl_name = file.split('/')
     
     return fld_name, fl_name
@@ -340,6 +344,8 @@ def copy_mandatory(src, des, deck, dict_1):
             dict_2[fl] = count
             if os.path.exists(f'{src}/ppt/{fl}/_rels'):
                 dict_2[f'{fl}/_rels'] = count
+            else:
+                dict_2[f'{fl}/_rels'] = count
             
             for i in os.walk(f'{src}/ppt/{fl}'):
                 fld = i[0].split('ppt/')[1]
@@ -385,6 +391,11 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
     for i in target_files:
         if '/' in i:
             if 'slideLayouts' not in i and 'slideMasters' not in i and 'theme' not in i:
+                if '/' in i and len(i.split('/')) > 2:
+                    # print("111")
+                    continue
+                    # print("222")
+                # print("333")
                 fld_name,fl_name = get_fld_fl(i)
                 if os.path.exists(f'{tmp_loc}/ppt/{fld_name}/{fl_name}'):
                     path = f'{tmp_loc}/ppt'
@@ -725,9 +736,12 @@ def scan_sldsz(src_xml, des_xml):
     cy = inp_sldsz['cy']
     Type = inp_sldsz.get('type')
     out_sldsz = o_tree.find(tag).attrib
-    if out_sldsz['cx']!=cx or out_sldsz['cy']!=cy:
-        out_sldsz['cx'] = cx
-        out_sldsz['cy'] = cy
+    if int(out_sldsz['cx']) < int(cx):
+        if int(out_sldsz['cy']) < int(cy):
+            out_sldsz['cx'] = cx
+            out_sldsz['cy'] = cy
+        else:
+            out_sldsz['cx'] = cx
     if not Type and out_sldsz.get('type'): # error
         del out_sldsz['type']
     o_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
@@ -860,7 +874,7 @@ def handle_cleaning():
     return
     
 
-def content(tmp_loc, ref_names_dict, order):
+def content(tmp_loc, ref_names_dict):
     """
     add content_type in [Contant_Types].xml file
     """
@@ -872,7 +886,6 @@ def content(tmp_loc, ref_names_dict, order):
     cnt_lst = []
     asset_lst = []
     def_att = []
-    d = dict()
     
     root1,tree1 = gen_tree(inp_path)
     root2,tree2 = gen_tree(out_path)
@@ -898,7 +911,8 @@ def content(tmp_loc, ref_names_dict, order):
                 cnt_lst.append(relation)
                 # asset_lst.append(relation.attrib['PartName'])
             else:
-                cnt_lst.append(relation)
+                # cnt_lst.append(relation)
+                pass
             if relation.attrib['PartName'] not in asset_lst:
                 asset_lst.append(relation.attrib['PartName'])
         else:
@@ -923,6 +937,7 @@ def content(tmp_loc, ref_names_dict, order):
             else:
                 root2.remove(relation)
     tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+    return
 
 
 def get_order(tmp_loc, order):
@@ -1001,7 +1016,7 @@ def deck_handler(id, msg, deck, dict_2, order):
     # print("TARGET: ", target_files)
     # dict_2.update(list_target(target_files, dict_2))
     
-    order, a = get_order(tmp_loc, order)
+    # order, a = get_order(tmp_loc, order)
     # refactoring_rIds(inp_pres_rels)
     
     # copy all the required assets
@@ -1020,7 +1035,8 @@ def deck_handler(id, msg, deck, dict_2, order):
     # updating rels and xml files of presentation
     dict_2 = presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     # adding contents in the Content-Type file
-    content(tmp_loc, dict_1, order)
+    # content(tmp_loc, dict_1, order)
+    content(tmp_loc, dict_1)
     # handling the properties files
     handle_configs(tmp_loc)
     # removing extra files
@@ -1041,13 +1057,16 @@ if __name__ == '__main__':
     dict_2 = OrderedDict()
     order = []
     
-    sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    # sample_msg = [41, {'d': 'Presentation1','s':  None}, {'d': 'Onboarding', 's':  [2,4,6]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  [1]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
-    # sample_msg = [41, {'d': 'Presentation1', 's': None}]
-    # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}] # working
-    # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}]
+    sample_msg = [41, {'d': 'Presentation1', 's': None}]
+    # sample_msg = [41, {'d': 'Sample 2', 's':  None}] # working
+    # sample_msg = [41, {'d': 'BI Case Studies', 's':  None}]
+    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'BI Case Studies', 's':  [2, 3]}]
+    # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}, {'d': 'Presentation1', 's': None}]
 
     render_id = sample_msg.pop(0)
     
