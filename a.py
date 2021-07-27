@@ -52,9 +52,9 @@ def max_rId():
     """
     path = f'{output_path}/ppt/_rels/presentation.xml.rels'
     root, tree = gen_tree(path)
-    
+
     rIds = []
-    
+
     for relation in root:
         attrib = relation.attrib
         rId = int(attrib.get('Id').split('Id')[-1])
@@ -201,13 +201,13 @@ def add_files(path, file_name, target_files, slides=None):
     """
     # print("CALLING.. Add_files")
     data = xml_to_dict(path)
-    
+
     if slides:
         sldIds = []
-        
+
         tot_slides = total_slides(f'{input_decks}/{file_name}.pptx')
         first_slide_id = first_slide(path)
-    
+
         files = []
         for i in data:
             current_rId = int(i['@Id'].split('Id')[1])
@@ -221,9 +221,9 @@ def add_files(path, file_name, target_files, slides=None):
                 if os.path.exists(f'{tmp_path}/{file_name}/ppt/{fld}/_rels'):
                     if os.path.isfile(f'{tmp_path}/{file_name}/ppt/{fld}/_rels/{fl}.rels'):
                         target_files.append(f'{fld}/_rels/{fl}.rels')
-        
+
         target_files = target_files + files
-        
+
         for id in slides:
             slide = f'slide{str(id)}.xml'
             sldIds.append([i["@Id"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
@@ -242,10 +242,10 @@ def add_files(path, file_name, target_files, slides=None):
                 else:
                     new_tar = path.split('/')[-3]
                     target_files.append(f'{new_tar}/{i["@Target"]}')
-                
+
                 if ".." in i['@Target'] and "xml" in i['@Target']:
                     path = f"{tmp_path}/{file_name}/ppt/{i['@Target'].split('..')[1].split('/')[1]}/_rels/{i['@Target'].split('..')[1].split('/')[2]}.rels"
-                    
+
                     if os.path.exists(path):
                         # handling rels files
                         target_files.append(path.split('ppt/')[1])
@@ -258,19 +258,15 @@ def get_fld_fl(file):
     """
     returns folder anme and file name
     """
-    # print("files: ", file)
     if '_rels' in file: # slides/_rels/slide2.xml.rels
-        # print("222: ", file)
         sp = file.split('/')
         fl_name = sp[-1]
         fld_name = f'{sp[0]}/{sp[1]}'
     elif '../' in file:
-        # print("111: ", file)
         _,fld_name,fl_name = file.split('/')
     else:
-        # print("333: ", file)
         fld_name,fl_name = file.split('/')
-    
+
     return fld_name, fl_name
 
 
@@ -292,14 +288,14 @@ def list_target(target_files, d2):
         if 'theme' not in d2:
             d2['theme'] = 0
     return d2
-    
+
 
 def rename(path, fld, fl, dict_2): # fld=media, fl=image1.png
     """
     rename a file
     """
     d1 = OrderedDict()
-    
+
     ext = ''.join(pathlib.Path(fl).suffixes)
     name = re.findall(r'(\w+?)(\d+)', fl)[0][0]
     if f'{fld}/{name}' in dict_2.keys():
@@ -346,7 +342,7 @@ def copy_mandatory(src, des, deck, dict_1):
                 dict_2[f'{fl}/_rels'] = count
             else:
                 dict_2[f'{fl}/_rels'] = count
-            
+
             for i in os.walk(f'{src}/ppt/{fl}'):
                 fld = i[0].split('ppt/')[1]
                 if '\\' in fld:
@@ -361,7 +357,7 @@ def copy_mandatory(src, des, deck, dict_1):
                     fld = j[0].split('ppt/')[1]
                     if '\\' in fld:
                         fld = fld.replace('\\', '/')
-                    
+
                     fl_list = natsort.natsorted(j[2])
                     for x in fl_list:
                         ext = ''.join(pathlib.Path(x).suffixes)
@@ -369,15 +365,15 @@ def copy_mandatory(src, des, deck, dict_1):
                         count = dict_2[fld]+1
                         new_name = f'{name}{count}{ext}'
                         shutil.copy(f'{src}/ppt/{fld}/{x}', f'{des}/{fld}/{new_name}')
-                        
+
                         dict_1[f'{i}/{x}'] = f'{fld}/{new_name}'
                         dict_2[fld] = count
-    
+
     # remove empty folders
     for i in os.walk(des):
         if not i[2]:
             shutil.rmtree(i[0])
-    
+
     return dict_1, dict_2
 
 
@@ -386,16 +382,11 @@ def copy_target(target_files, file_name, tmp_loc, dict_2):
     copy target files from tmp to output folder 
     """
     d_1 = OrderedDict()
-    
+
     target_files = natsort.natsorted(target_files)
     for i in target_files:
         if '/' in i:
             if 'slideLayouts' not in i and 'slideMasters' not in i and 'theme' not in i:
-                if '/' in i and len(i.split('/')) > 2:
-                    # print("111")
-                    continue
-                    # print("222")
-                # print("333")
                 fld_name,fl_name = get_fld_fl(i)
                 if os.path.exists(f'{tmp_loc}/ppt/{fld_name}/{fl_name}'):
                     path = f'{tmp_loc}/ppt'
@@ -464,7 +455,7 @@ def get_relations(inp_path, file_name, slides):
                 files1.append(attrib["Target"])
                 sldIds.append(attrib['Id'])
                 dict_3[attrib['Target']] = [relation.tag, attrib['Id'], attrib['Type'], attrib['Target']]
-    
+
     if slides:
         for id in slides:
             slide = f'slide{str(id)}.xml'
@@ -475,12 +466,12 @@ def get_relations(inp_path, file_name, slides):
                     sldIds.append(attrib['Id'])
                     dict_3[attrib['Target']] = [relation.tag, attrib['Id'], attrib['Type'], attrib['Target']]
     files1 = natsort.natsorted(files1)
-    
+
     for relation in root2:
         attrib = relation.attrib
         files2.append(attrib['Target'])
     files2 = natsort.natsorted(files2)
-    
+
     return files1, dict_3, files2, sldIds
 
 
@@ -491,7 +482,7 @@ def update_dict_3(dict_1, dict_3):
     inp_keys = [i for i in dict_1.keys()]
     d3_keys = [i for i in dict_3.keys()]
     out_keys = natsort.natsorted([i for i in d3_keys])
-    
+
     for i in out_keys:
         if '/' in i:
             val = dict_3[i]
@@ -517,7 +508,7 @@ def update_rId(dict_2, files1, dict_3):
         d1[val[1]] = f'rId{max_rId}'
         val[1] = f'rId{max_rId}'
         dict_3[i] = val
-        
+
     dict_2['rId'] = max_rId
     return dict_2, dict_3, d1
 
@@ -536,7 +527,7 @@ def write_rels(dict_3, files1):
         etree.SubElement(root, tag, Id=Id, Type=Type, Target=target)
     tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
-        
+
 
 def xml_tag(inp_tag, out_tag):
     """
@@ -559,16 +550,16 @@ def create_tags(tag_dict, o_tree):
         subtag2 = etree.Element(i)
         subtag1.addnext(subtag2)
     o_tree.write(f'{output_path}/ppt/presentation.xml', pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
-    
+
     return 
-   
+
 
 def modify_d2(d1, d2):
     """
     modify the subtag dictionary
     """
     val_list = [i for i in d2.keys()]
-    
+
     for key in val_list:
         for i in range(len(d2[key])):
             try:
@@ -579,17 +570,17 @@ def modify_d2(d1, d2):
             except:
                 pass
     return d2
-            
-            
+
+
 def add_extLst(src_xml, des_xml, ext_lst, tag_dict):
     """
     adding extlst subelements in prep.xml file
     """
     inp_root,_ = gen_tree(src_xml)
     out_root, out_tree = gen_tree(des_xml)
-    
+
     for relation in ext_lst:
-        
+
         # if relation in tag_dict.keys():
         #     print("JJJ: ", relation)
         #     print("PPP: ", tag_dict[relation])
@@ -599,7 +590,7 @@ def add_extLst(src_xml, des_xml, ext_lst, tag_dict):
 
     out_tree.write(des_xml, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
-         
+
 
 def get_prep_tags(src_xml, d1):
     """
@@ -612,7 +603,7 @@ def get_prep_tags(src_xml, d1):
     rId_lis = [i for i in d1.keys()]
     nmsps =  root.nsmap['r']
     ext_lst = []
-    
+
     for relation in root:
         for ele in relation:
             attrib = ele.attrib
@@ -702,22 +693,22 @@ def rel_duplicates():
             d1[attrib['Target']] = val
         else:
             d1[attrib['Target']] = [attrib['Id']]
-    
+
     # getting duplicates rIds
     dup_rIds = []
     for k,v in d1.items():
         if len(v) > 1:
             dup_rIds.append(v.pop(0))
             d1[k] = v
-    
+
     # removing relation
     for relation in root:
         attrib = relation.attrib
         if attrib['Id'] in dup_rIds:
             root.remove(relation)
-    
+
     rels_rIds = [relation.attrib['Id'] for relation in root]
-        
+
     tree.write(path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return d1, rels_rIds
 
@@ -728,9 +719,9 @@ def scan_sldsz(src_xml, des_xml):
     """
     _,i_tree = gen_tree(src_xml)
     _,o_tree = gen_tree(des_xml)
-    
+
     tag = "{http://schemas.openxmlformats.org/presentationml/2006/main}sldSz"
-    
+
     inp_sldsz = i_tree.find(tag).attrib
     cx = inp_sldsz['cx']
     cy = inp_sldsz['cy']
@@ -754,16 +745,16 @@ def write_pres(tmp_loc, d1, rels_rIds):
     """
     src_xml = f'{tmp_loc}/ppt/presentation.xml'
     des_xml = f'{output_path}/ppt/presentation.xml'
-    
+
     inp_root, inp_tree = gen_tree(src_xml)
     out_root, out_tree = gen_tree(des_xml)
-    
+
     inp_tag = [relation.tag for relation in inp_root]
     out_tag = [relation.tag for relation in out_root]
-    
+
     tag_dict = xml_tag(inp_tag, out_tag)
     create_tags(tag_dict, out_tree)
-    
+
     pxml_subtags, ext_lst = get_prep_tags(src_xml, d1)
     # add_extLst(src_xml, des_xml, ext_lst, tag_dict)
     create_json(pxml_subtags, '05_pxml_subtag')
@@ -786,7 +777,7 @@ def presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     write_rels(dict_3, files1)
     prep_rels_rIds, rels_rIds = rel_duplicates()
     create_json(prep_rels_rIds, '04_prep_rels_rIds')
-    
+
     write_pres(tmp_loc, d1, rels_rIds)
     return dict_2
 
@@ -797,13 +788,13 @@ def handle_configs(tmp_loc):
     """
     inp_path = '/'.join([tmp_loc, 'ppt'])
     out_path = f'{output_path}/ppt'
-    
+
     config_fls = [i for i in os.listdir(inp_path) if os.path.isfile(f'{inp_path}/{i}')]
     # print("CCC: ", config_fls)
     mergables = ['commentAuthors.xml', 'tableStyles.xml']
     sing_prop = ['viewProps.xml', 'presProps.xml']
     ignore = ['revisionInfo.xml']
-    
+
     for i in config_fls:
         inp_fl = f'{inp_path}/{i}'
         out_fl = f'{out_path}/{i}'
@@ -830,7 +821,7 @@ def handle_configs(tmp_loc):
                             attrib = ele.attrib
                             if attrib['uri'] not in inp_d.keys():
                                 inp_d[attrib['uri']] = ele
-                    
+
                     for relation in [f"{root2[0].tag}"]:
                         fp = root2.find(tag0)
                         for ele in fp:
@@ -845,8 +836,8 @@ def handle_configs(tmp_loc):
             tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
         else:
             shutil.copyfile(inp_fl, out_fl)
-        
-            
+
+
     return
 
 
@@ -859,44 +850,45 @@ def handle_cleaning():
     fld_path = f'{output_path}/ppt'
     out_rel_path = f'{fld_path}/_rels/presentation.xml.rels'
     root, tree = gen_tree(out_rel_path)
-    
+
     for i in extra_fl:
         path = f'{fld_path}/{i}'
         if os.path.isfile(path):
             shutil.rmtree(path)
-    
+
         for relation in root:
             attrib = relation.attrib
             if i in attrib['Target']:
                 root.remove(relation)
-    
+
     tree.write(out_rel_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     return
-    
+
 
 def content(tmp_loc, ref_names_dict):
     """
     add content_type in [Contant_Types].xml file
     """
-    
+
     fl = '[Content_Types].xml'
     inp_path = '/'.join([tmp_loc, fl])
     out_path = '/'.join([output_path, fl])
-    
+
     cnt_lst = []
     asset_lst = []
     def_att = []
-    
+    d = dict()
+
     root1,tree1 = gen_tree(inp_path)
     root2,tree2 = gen_tree(out_path)
-    
+
     # get all the extensions belongs to "Default" tag
     for relation in root2:
         if 'Default' in relation.tag:
             def_att.append(relation.attrib['Extension'])
         else:
             break
-    
+
     for relation in root1:
         if 'Override' in relation.tag:
             attrib = relation.attrib['PartName'][1:]
@@ -911,8 +903,7 @@ def content(tmp_loc, ref_names_dict):
                 cnt_lst.append(relation)
                 # asset_lst.append(relation.attrib['PartName'])
             else:
-                # cnt_lst.append(relation)
-                pass
+                cnt_lst.append(relation)
             if relation.attrib['PartName'] not in asset_lst:
                 asset_lst.append(relation.attrib['PartName'])
         else:
@@ -926,9 +917,9 @@ def content(tmp_loc, ref_names_dict):
     for ele in cnt_lst:
         prev = tree2.find(ele.tag)
         prev.addnext(ele)
-    
+
     tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
-    
+
     unq_attr = []
     for relation in root2:
         if 'Override' in relation.tag:
@@ -937,7 +928,6 @@ def content(tmp_loc, ref_names_dict):
             else:
                 root2.remove(relation)
     tree2.write(out_path, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
-    return
 
 
 def get_order(tmp_loc, order):
@@ -948,16 +938,16 @@ def get_order(tmp_loc, order):
     fn = 'ppt/_rels/presentation.xml.rels'
     inp_path = f'{tmp_loc}/{fn}'
     out_path = f'{output_path}/{fn}'
-    
+
     root1,tree1 = gen_tree(inp_path)
     root2,tree2 = gen_tree(out_path)
-    
+
     rid_dict = {}
     for relation in root1:
         Type = relation.attrib['Type'].split('/')[-1]
         rId = int(relation.attrib['Id'].split('Id')[-1])
         rid_dict[rId] = Type
-    
+
     ord_dict = OrderedDict(sorted(rid_dict.items()))
     type_dict = OrderedDict()
     prev = ''
@@ -973,11 +963,9 @@ def get_order(tmp_loc, order):
                 ind = order.index(prev)
             order.insert(ind+1, v)
         prev = v
-    # print("OOO: ", order)
-    print("ORDER: ", order)
     return order, type_dict
-        
-    
+
+
 def refactoring_rIds(inp_path, order, type_dict, dict_2):
     """
     refactors rIds of the assets
@@ -987,38 +975,40 @@ def refactoring_rIds(inp_path, order, type_dict, dict_2):
         if i==order[0]:
             pass
     return
-            
 
-def deck_handler(id, msg, deck, dict_2, order):
+
+def deck_handler(id, msg, deck, dict_2):
     """
     handle the deck and select files for output deck
     """
     file_name, slides = msg['d'], msg['s']
     target_files = []
-    
+
     tmp_loc = f'{tmp_path}/{file_name}'
-    
+
     # unzip the input deck
     unzip(f'{input_decks}/{file_name}.pptx', tmp_loc)
-    
+
     # creates folder structure of the input deck
     make_dir(file_name)
     inp_pres_rels = f'{tmp_loc}/ppt/_rels/presentation.xml.rels'
-    
+
     if deck == 1:
         make_structure(file_name)
-    
+
     # get all the slides if slide is None
+
+
     if not slides:
         slides = add_slides(file_name)
-    
+
     target_files = add_files(inp_pres_rels, file_name, target_files, slides)
     # print("TARGET: ", target_files)
     # dict_2.update(list_target(target_files, dict_2))
-    
+
     # order, a = get_order(tmp_loc, order)
-    # refactoring_rIds(inp_pres_rels)
-    
+    # refactoring_rId
+
     # copy all the required assets
     dict_1 = copy_target(target_files, file_name, tmp_loc, dict_2)
     # copy all the mendatory assets
@@ -1035,41 +1025,37 @@ def deck_handler(id, msg, deck, dict_2, order):
     # updating rels and xml files of presentation
     dict_2 = presenation_files(inp_pres_rels, file_name, slides, dict_1, dict_2, tmp_loc)
     # adding contents in the Content-Type file
-    # content(tmp_loc, dict_1, order)
     content(tmp_loc, dict_1)
     # handling the properties files
     handle_configs(tmp_loc)
     # removing extra files
     handle_cleaning()
-    
+
     # creating json files
     create_json(dict_1, '01_refactored_names')
     create_json(dict_2, '02_refactoring_count')
-    
-    return order
+
+    return
 
 
 if __name__ == '__main__':
-    
+
     base_path = os.path.dirname(os.path.realpath(__file__))
     print("CURRENT_DIR:", base_path)
     dict_1 = OrderedDict()
     dict_2 = OrderedDict()
     order = []
-    
+
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
-    # sample_msg = [41, {'d': 'Presentation1','s':  None}, {'d': 'Onboarding', 's':  [2,4,6]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  [1]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}]
     # sample_msg = [41, {'d': 'Onboarding', 's':  None}]
-    sample_msg = [41, {'d': 'Presentation1', 's': None}]
-    # sample_msg = [41, {'d': 'Sample 2', 's':  None}] # working
-    # sample_msg = [41, {'d': 'BI Case Studies', 's':  None}]
-    # sample_msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'BI Case Studies', 's':  [2, 3]}]
-    # sample_msg = [41, {'d': 'BI Case Studies', 's':  [2, 3]}, {'d': 'Presentation1', 's': None}]
+    # sample_msg = [41, {'d': 'Presentation1', 's': None}]
+    # sample_msg = [41, {'d': 'Presentation1', 's':  [1]}]
+    sample_msg = [41, {'d': 'Presentation1', 's':  [1]}, {'d': 'Onboarding', 's':  None}]
 
     render_id = sample_msg.pop(0)
-    
+
     output_path = f'{base_path}/output/{str(render_id)}'
     tmp_path = f'{base_path}/tmp/{render_id}'
     input_decks = f'{base_path}/presentations' 
@@ -1079,15 +1065,15 @@ if __name__ == '__main__':
         os.makedirs(tmp_path)
     except:
         print("DIR ALREADY EXIST")
-    
+
     # creating and unzipping empty deck
     m_rId = new(output_path)
     dict_2.update(m_rId)
-    
+
     # iterating all the messages
     deck = 1
     while sample_msg:
-        order = deck_handler(render_id, sample_msg.pop(0), deck, dict_2, order)
+        deck_handler(render_id, sample_msg.pop(0), deck, dict_2)
         deck += 1
 
     # zip the output folder
