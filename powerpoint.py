@@ -3,6 +3,8 @@ import logging
 import xmltodict
 import shutil
 import zipfile
+import pathlib
+import re
 
 from typing import OrderedDict
 from pptx import Presentation
@@ -121,9 +123,42 @@ def new(path):
     shutil.move (fq_empty, d)
     # unzip
     unpack (d, d.split('.')[0])
+    
     os.remove(d)
-    m_rId = max_rId()
-    return m_rId
+    
+    # m_rId = max_rId()
+    
+    return "some output path"
+
+
+def max_rId (emp):
+    """
+    find the largest rId
+    """
+    path = f'{emp}/ppt/_rels/presentation.xml.rels'
+    root, tree = build_tree(path)
+
+    rIds = []
+
+    for relation in root:
+        attrib = relation.attrib
+        rId = int(attrib.get('Id').split('Id')[-1])
+        rIds.append(rId)
+    return {'rId': max(rIds)}
+
+
+def get_fld_f_names (asset):
+    """
+    generates folder and file names
+    """
+    sp = asset.split ('/')
+    if '_rels' in asset: # slides/_rels/slide2.xml.rels
+        f = sp[-1]
+        fld = f'{sp[-3]}/{sp[-2]}'
+    else:
+        fld, f = sp[-2], sp[-1]
+
+    return fld, f
 
 
 def xml_to_dict (path):
@@ -140,6 +175,15 @@ def xml_to_dict (path):
     return data
 
 
+def create(tree, f):
+    """
+    creates an XML file using the tree
+    """
+    tree.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+    
+    return tree
+
+
 def build_tree (path):
     """
     pass the path of the xml file to enable the parsing process
@@ -147,8 +191,49 @@ def build_tree (path):
     """
     parser = etree.XMLParser(remove_blank_text=True)
     tree = etree.parse(path, parser)
-    root = tree.getroot()    
-    return root, tree
+    # root = tree.getroot()    
+    return tree
+
+
+def build_name(ft, k, v, refactored_cnt):
+    """
+    generates refactored name for an asset,
+    update the refactored count and
+    creates assets in the output deck
+    """
+    fld, f = get_fld_f_names(k)
+    assets_nm, assets_cnt = {}, {}
+
+    ext = ''.join(pathlib.Path(f).suffixes) # .xml (or) .xml.rels
+    name = re.findall(r'(\w+?)(\d+)', f)[0][0] # slide, slideLayout, theme, slideMaster
+
+    if f'{fld}/{name}' in refactored_cnt.keys():
+        cnt = refactored_cnt[f'{fld}/{name}']+1
+    else:
+        cnt = 1
+    
+    new_name = f'{name}{cnt}{ext}'
+    tree = v
+    
+    if 'ppt' in k:
+        create(tree, f"{ft}/ppt/{fld}/{new_name}")
+    else:
+        create(tree, f"{ft}/{fld}/{new_name}")
+
+    assets_nm[f'{fld}/{f}'] = f'{fld}/{new_name}'
+    assets_cnt[f'{fld}/{name}'] = cnt
+    
+    return assets_nm, assets_cnt
+
+
+def generate_last_indicies(ft):
+    """
+    generate refactored count dict for assets
+    ft: path_to_output_deck
+    """
+    for i in os.walk(ft):
+        pass
+        
 
 
 def assetfn_to_relfn(ft, fqfn):
@@ -161,8 +246,23 @@ def assetfn_to_relfn(ft, fqfn):
     r = f"{ft}/ppt/{l[-2]}/_rels/{l[-1]}.xml.rels"
     
     return r
-    
 
+
+def walk_asset_tree(ft, asset, coll={}):
+    
+    rf = assetfn_to_relfn(ft, asset)
+
+    assetfn = f"{ft}/{asset}"
+    coll = {**coll, assetfn: build_tree(assetfn)}
+
+    if os.path.exists(rf):
+        # rels = open rels
+        # for r in rels:
+            # t = target
+            # coll = walk_asset_tree(t, coll)
+        pass
+
+    return coll
 
 # /mnt/input
 # /mnt/output
@@ -185,9 +285,20 @@ def is_manadatory(i):
     #              not i["@Target"].startswith("theme")
 
 
+def next_index_for(type, lasts):
+    """
+    
+    """
+    current = lasts.get(type, 0)
+    current = current + 1
+    lasts[type] = current
+    return (current, lasts)
+
+
 def build_mandatory_assets(ft, assets):
     pxr = f'{ft}/ppt/_rels/presentation.xml.rels'
-    root,_ = build_tree (pxr)
+    tree = build_tree (pxr)
+    root = tree.getroot()
     d = filter(is_manadatory, root)
     # d = filter(is_manadatory(), xml_to_dict (pxr))
     # assets = [i["@Target"] for i in d]
@@ -199,31 +310,36 @@ def build_mandatory_assets(ft, assets):
         else:
             tar = f'{ft}/ppt/{target}'
         
-        assets[tar] = [build_tree (tar)]
+        assets[tar] = build_tree (tar)
     
     return assets
 
-
+#def build_assets(s, ft, assets)
 def build_assets(ft, pxr, assets, slide=None):
     """
     assets = {fq-destination, file}
     req:
      assets (with all the files)
     """
+    # s = f'slide{str(slide)}.xml'
+    # assets = walk_asset_tree(ft, s)
+
     if slide:
         filename = f"{ft}/ppt/slides"
         s = f'slide{str(slide)}.xml'
-        assets[f'{filename}/{s}'] = [build_tree (f'{filename}/{s}')]
+        f = f'{ft}/{filename}/{s}'
+        assets[f] = build_tree (f)
         build_assets (ft, f'{filename}/_rels/{s}.rels', assets)
     
     else:
-        root, tree = build_tree (pxr)
+        tree = build_tree (pxr)
+        root = tree.getroot()
         for relation in root:
             attrib = relation.attrib
             if 'http' not in attrib['Target']:
                 if '../' in attrib['Target']:
                     tar = f'{ft}/{attrib[3:]}'
-                    assets[tar] = [build_tree (tar)]
+                    assets[tar] = build_tree (tar)
 
                     if 'xml' in attrib['Target']:
                         fld = attrib['Target'].split('/')[-2]
@@ -236,7 +352,7 @@ def build_assets(ft, pxr, assets, slide=None):
                 else:
                     new_tar = pxr.split('/')[-3]
                     tar = f"{ft}/ppt/{new_tar}/{attrib['Target']}"
-                    assets[tar] = [build_tree (tar)]
+                    assets[tar] = build_tree (tar)
     
     return assets
 
@@ -251,7 +367,7 @@ def build_rels(ft, assets, rels):
     for i in assets.keys():
         f = assetfn_to_relfn(ft, i)         
         if os.path.isfile(f):
-            rels[f] = [build_tree (f)]
+            rels[f] = build_tree (f)
     
     return rels
 
@@ -266,7 +382,8 @@ def build_content_types(ft, assets, rels, content_types):
     f = '[Content_Types].xml'
     inp_path = '/'.join ([ft, f])
 
-    root1,_ = build_tree (inp_path)
+    tree1 = build_tree (inp_path)
+    root1 = tree1.getroot()
 
     for relation in root1:
         if 'Override' in relation.tag:
@@ -294,76 +411,68 @@ def build_properties(ft, properties):
     inp_path = '/'.join([ft, 'ppt'])
     
     for i in os.listdir(inp_path):
-        if os.path.isfile(f'{inp_path}/{i}'):
-            properties[f'{inp_path}/{i}'] = [build_tree (f'{inp_path}/{i}')]
+        f = f'{inp_path}/{i}'
+        if os.path.isfile(f):
+            properties[f] = build_tree (f)
         
     return properties
 
 
-def build_properties1(ft, properties):
+def apply_assets(ft, assets, rels, refactored_cnt):
+    """
+    creates all assets in the output deck 
+    """
+    for k,v in assets.items():
+        assets_nm, assets_cnt = build_name (ft, k, v, refactored_cnt)
+    return assets_nm, assets_cnt
+
+
+def refactor_content(ft, refactored_nm, ):
+    """
+    refactoring content of the rel files
+    and then saving it
+    """
+
+
+
+
+def apply_rels(ft, k, v, refactored_nm):
+    """
+    creates all rel files of assets in the output deck 
+    """
+    fld, f = get_fld_f_names(k)
+    assets_nm, assets_cnt = {}, {}
+
+    ext = ''.join(pathlib.Path(f).suffixes) # .xml (or) .xml.rels
+    name = re.findall(r'(\w+?)(\d+)', f)[0][0] # slide, slideLayout, theme, slideMaster
+
+    if f'{fld}/{name}' in assets_cnt.keys():
+        cnt = assets_cnt[f'{fld}/{name}']+1
+    else:
+        cnt = 1
     
-    inp_path = '/'.join([ft, 'ppt'])
-    out_path = f'{ft}/ppt'
-
-    config_fls = [i for i in os.listdir(inp_path) if os.path.isfile(f'{inp_path}/{i}')]
+    new_name = f'{name}{cnt}{ext}'
+    tree = v
     
-    mergables = ['commentAuthors.xml', 'tableStyles.xml']
-    sing_prop = ['viewProps.xml', 'presProps.xml']
-    ignore = ['revisionInfo.xml']
+    if 'ppt' in k:
+        create(tree, f"{ft}/ppt/{fld}/{new_name}")
+    else:
+        create(tree, f"{ft}/{fld}/{new_name}")
+
+    assets_nm[f'{fld}/{f}'] = f'{fld}/{new_name}'
+    assets_cnt[f'{fld}/{name}'] = cnt
     
-    for i in config_fls:
-        inp_fl = f'{inp_path}/{i}'
-        out_fl = f'{out_path}/{i}'
-        
-        if os.path.isfile(f'{out_path}/{i}'):
-            root1,tree1 = build_tree (inp_fl)
-            root2,tree2 = build_tree (out_fl)
-            if i in mergables:
-                try:
-                    for relation in [f"{root1[0].tag}"]:
-                        for elt in root1.findall (relation):
-                            root2.append(elt)
-                except:
-                    pass
-            elif i in sing_prop:
-                if i == 'presProps.xml':
-                    inp_d = {}
-                    out_lis = []
-                    nm = root1.nsmap['p']
-                    tag0 = f"{{{nm}}}extLst"
-                    for relation in [f"{root1[0].tag}"]:
-                        fp = root1.find (tag0)
-                        for ele in fp:
-                            attrib = ele.attrib
-                            if attrib['uri'] not in inp_d.keys():
-                                inp_d[attrib['uri']] = ele
-
-                    for relation in [f"{root2[0].tag}"]:
-                        fp = root2.find (tag0)
-                        for ele in fp:
-                            attrib = ele.attrib
-                            out_lis.append (attrib['uri'])
-                    for k,v in inp_d.items():
-                        if k not in out_lis:
-                            tag1 = root2.find(tag0)
-                            tag1.append(v)
-            else:
-                pass
-            tree2.write(out_fl, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
-        else:
-            shutil.copyfile(inp_fl, out_fl)
-
-
-    return
-
-
-def apply_assets(ft, assets):
-    return assets
-
-
-def apply_rels(ft, rels):
+    return assets_nm, assets_cnt
     
-    return rels
+
+
+# def apply_rels(ft, rels, refactored_nm, refactored_cnt):
+#     """
+#     creates all the rel files of assets in the output deck
+#     """
+#     for k,v in rels:
+#         assets_nm, assets_cnt = refactor_content (ft, k, v, refactored_nm)
+#     return assets_nm, assets_cnt
 
 
 def apply_content_types(ft, content_types):
@@ -378,7 +487,7 @@ def apply_content_types(ft, content_types):
 
 def apply_properties(ft, properties):
     """
-    considering 'ft' as full system putput deck's path
+    considering 'ft' as full system output deck's path
     """
     
     mergables = ['commentAuthors.xml', 'tableStyles.xml']
@@ -390,16 +499,19 @@ def apply_properties(ft, properties):
         f = f"{ft}/ppt/{i}"
         
         if os.path.isfile (f):
-            root1,_ = v[0], v[1]
-            root2, tree2 = build_tree (f)
+            tree1 = v
+            root1 = tree1.getroot()
+            tree2 = build_tree (f)
+            root2 = tree2.getroot()
             
+            etag = f"{root1[0].tag}"
             if i in mergables:
                 try:
-                    for relation in [f"{root1[0].tag}"]:
+                    for relation in [etag]:
                         for ele in root1.findall (relation):
                             root2.append(ele)
-                except:
-                    pass
+                except IndexError:
+                    print("list index out of range")
             elif i in sing_prop:
                 if i == 'presProps.xml':
                     uris = {}
@@ -407,7 +519,7 @@ def apply_properties(ft, properties):
                     nm = root1.nsmap['p']
                     ext_tag = f"{{{nm}}}extLst"
                     
-                    for relation in [f"{root1[0].tag}"]:
+                    for relation in [etag]:
                         
                         fp = root1.find (ext_tag)
                         for ele in fp:
@@ -429,7 +541,7 @@ def apply_properties(ft, properties):
             tree2.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
         
         else:
-            v[1].write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
+            tree1.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     
     return properties
 
@@ -448,33 +560,46 @@ def process_message(msg, ctx):
         prs = Presentation(ft)
         ss = list(range(1, len(prs.slides._sldIdLst) + 1))
 
+    lasts = ctx["lasts"]
     assets = OrderedDict()
     rels = OrderedDict()
     content_types = OrderedDict()
-    properties = []
+    properties = OrderedDict()
+    ref_names = dict()
+    ref_count = dict()
 
     assets = build_mandatory_assets(ft, assets)
 
+    pxr = ''
+
     for s in ss:
-        assets = build_assets(s, ft, assets)
-        rels = build_rels(ft, assets, rels)
+        assets = build_assets(ft, pxr, assets, lasts, s)
+        rels = build_rels(ft, assets, rels, lasts)
     
     content_types = build_content_types(ft, assets, rels, content_types)
     properties = build_properties(ft, assets, properties)
 
-    ctx["assets"] = {**ctx["assets"], assets}
-    ctx["rels"] = {**ctx["rels"], rels}
+    ctx["assets"] = {**ctx["assets"], **assets}
+    ctx["rels"] = {**ctx["rels"], **rels}
     ctx["content_types"] = {ctx["content_types"], rels}
     ctx["properties"] = ctx.get("properties") + properties
 
+    ctx["lasts"] = lasts
     return ctx
 
-def write_output(ctx, output_deck):
-    ft = new(output_deck)
-    apply_assets(ft, ctx["assets"])
-    apply_rels(ft, ctx["rels"])
+def write_output(ft, ctx, output_deck):
+    
+    ref_nm, ref_cnt = apply_assets(ft, ctx["assets"], ctx['refactored_cnt'])
+    ctx['refactored_name'] = {**ref_nm}
+    ctx['refactored_count'] = {**ref_nm}
+    
+    ref_nm, ref_cnt = apply_rels(ft, ctx["rels"], ctx['refactored_name'], ctx['refactored_cnt'])
+    ctx['refactored_name'] = {**ref_nm}
+    ctx['refactored_count'] = {**ref_nm}
+    
     apply_content_types(ft, ctx["content_types"])
     apply_properties(ft, ctx["properties"])
+    
     pack(ft, file=output_deck)
     close(ft)
     return output_deck
@@ -490,12 +615,21 @@ def render_deck_effect(ctx):
         logger.error("No messages in context")
     else:
         render_id = msgs.pop(0)
-        ctx = reduce(process_message, msgs, {})
-
         output_deck = f"/mnt/output/{render_id}.pptx"
+        
+        # ft: full system path of empty output deck
+        ft = new(output_deck)
+        refactored_cnt = {**max_rId(ft)}
+        
+        lasts = generate_last_indicies(ft)
+        
+        ctx = reduce(process_message, msgs, {"lasts": lasts})
+
+        
         logger.debug(f"writing output deck to {output_deck}")
-        write_output(ctx, output_deck)
+        write_output(ft, ctx, output_deck, refactored_cnt)
 
     return ctx
 
 # continue
+
