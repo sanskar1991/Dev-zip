@@ -145,13 +145,11 @@ def remove_dup (itags, assest_rels, otags):
     remove duplicate relationships from the rels files
     """
     l1 = itags[:]
-    
     for i in l1:
         if '/' not in i:
             if i in otags:
                 itags.remove(i)
                 del assest_rels[i]
-    
     return itags   
 
 
@@ -191,7 +189,7 @@ def make_dir (ip, ft, input_deck):
     return ft
 
 
-def make_structure (ip, ft, input_deck):
+def build_structure (ip, ft, input_deck):
     """
     create structure of first input deck
     """
@@ -206,18 +204,14 @@ def make_structure (ip, ft, input_deck):
     return ft
 
 
-def build_assets (pxr, input_deck, assets, ss=None):
+def build_assets (pxr, input_deck, assets, ip, pp=None, ss=None):
     """
     list the assets that needs to be modified in output deck
     """
     data = xml_to_dict (pxr)
-    # tmp_path = "/Users/sanskar/Desktop/Development/MS Bing/Dev-zip/tmp/41"
-    tmp_path = "C:/Users/RichaM/Documents/code/parse_task/tmp/41"
     
     if ss:
-        # presentations = "/Users/sanskar/Desktop/Development/MS Bing/Dev-zip/presentations"
-        presentations = "C:/Users/RichaM/Documents/code/parse_task/presentations"
-        tot_slides = total_slides (f'{presentations}/{input_deck}.pptx')
+        tot_slides = total_slides (pp)
         first_slide_id = first_slide (pxr)
 
         files = []
@@ -231,8 +225,8 @@ def build_assets (pxr, input_deck, assets, ss=None):
             if '/' in i:
                 a = i.split ('/')
                 fld, fl = a[0], a[1]
-                if os.path.exists (f'{tmp_path}/{input_deck}/ppt/{fld}/_rels'):
-                    if os.path.isfile (f'{tmp_path}/{input_deck}/ppt/{fld}/_rels/{fl}.rels'):
+                if os.path.exists (f'{ip}/ppt/{fld}/_rels'):
+                    if os.path.isfile (f'{ip}/ppt/{fld}/_rels/{fl}.rels'):
                         assets.append (f'{fld}/_rels/{fl}.rels')
         
         assets = assets + files
@@ -241,7 +235,7 @@ def build_assets (pxr, input_deck, assets, ss=None):
             slide = f'slide{str(s)}.xml'
             assets.append ([i["@Target"] for i in data if slide in i["@Target"] and "http" not in i["@Target"]][0])
             assets.append (f'slides/_rels/{slide}.rels')
-            build_assets (f'{tmp_path}/{input_deck}/ppt/slides/_rels/{slide}.rels', input_deck, assets)
+            build_assets (f'{ip}/ppt/slides/_rels/{slide}.rels', input_deck, assets, ip)
 
     else:
         for i in data:
@@ -249,7 +243,7 @@ def build_assets (pxr, input_deck, assets, ss=None):
             if i["@Target"] in assets or i["@Target"][3:] in assets:
                 pass
             
-            elif "http" not in i["@Target"]:    
+            elif "http" not in i["@Target"]:
                 if '../' in i["@Target"]:
                     assets.append (i['@Target'][3:])
                 else:
@@ -257,14 +251,16 @@ def build_assets (pxr, input_deck, assets, ss=None):
                     assets.append(f'{new_tar}/{i["@Target"]}')
 
                 if ".." in i['@Target'] and "xml" in i['@Target']:
-                    fld = i['@Target'].split ('..')[1].split ('/')[1]
-                    fl = i['@Target'].split ('..')[1].split ('/')[2]
-                    pxr = f"{tmp_path}/{input_deck}/ppt/{fld}/_rels/{fl}.rels"
+                    # fld = i['@Target'].split ('..')[1].split ('/')[1]
+                    fld = i['@Target'].split('/')[-2]
+                    # fl = i['@Target'].split ('..')[1].split ('/')[2]
+                    fl = i['@Target'].split('/')[-1]
+                    pxr = f"{ip}/ppt/{fld}/_rels/{fl}.rels"
 
                     if os.path.exists (pxr):
                         # handling rels files
                         assets.append (pxr.split ('ppt/')[1])
-                        build_assets (pxr, input_deck, assets)
+                        build_assets (pxr, input_deck, assets, ip)
 
     return assets
 
@@ -459,7 +455,7 @@ def build_relations (pxr, ft, pp, input_deck, ss):
     
     itags = natsort.natsorted(itags)
     otags = natsort.natsorted(otags)
-
+    
     return itags, otags, assest_rels
 
 
@@ -469,7 +465,7 @@ def update_assest_rels (nm, assest_rels):
     """
     d3_keys = [i for i in assest_rels.keys()]
     out_keys = natsort.natsorted([i for i in d3_keys])
-
+    
     arels = OrderedDict(assest_rels)
     
     for i in out_keys:
@@ -480,6 +476,7 @@ def update_assest_rels (nm, assest_rels):
             else:
                 val[3] = nm[i]
             arels[i] = val
+    
     return arels
 
 
@@ -807,8 +804,8 @@ def handle_configs (ip, ft):
                     for relation in [f"{root1[0].tag}"]:
                         for elt in root1.findall(relation):
                             root2.append(elt)
-                except:
-                    pass
+                except IndexError:
+                    print("list index out of range")
             elif i in sing_prop:
                 if i == 'presProps.xml':
                     inp_d = {}
@@ -956,7 +953,7 @@ def deck_handler(r, msg, bp, d, assets_cnt):
     make_dir (ip, ft, input_deck)
     
     if d == 1:
-        make_structure (ip, ft, input_deck)
+        build_structure (ip, ft, input_deck)
 
     ss = msg ['s']
     if not ss:
@@ -964,7 +961,7 @@ def deck_handler(r, msg, bp, d, assets_cnt):
     
     assets = []
     pxr = f'{ip}/ppt/_rels/presentation.xml.rels'
-    assets = build_assets (pxr, input_deck, assets, ss)
+    assets = build_assets (pxr, input_deck, assets, ip, pp, ss)
     
     assets_name = apply_assets (assets, ft, ip, assets_cnt)
     
@@ -997,8 +994,8 @@ def deck_handler(r, msg, bp, d, assets_cnt):
 
     
 def deck_render_effect ():
-    # msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}]
-    msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}, {'d': 'Presentation1','s':  None}]
+    msg = [41, {'d': 'Onboarding', 's':  [2,4,6]}]
+    # msg = [41, {'d': 'Onboarding', 's':  [2, 4, 6]}, {'d': 'Presentation1','s':  None}]
     r = msg.pop(0)
     
     bp = os.getcwd ()

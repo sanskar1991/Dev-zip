@@ -169,7 +169,7 @@ def write_output_xml(tree, f):
     return f
 
 
-def modify_output_mxl(tree, relation, rel_tag):
+def modify_output_xml(tree, relation, rel_tag):
     """
     update existing xml file
     """
@@ -227,14 +227,48 @@ def refactor_assets_and_rels(k, v, ctx):
     return ctx
 
 
-def generate_last_indicies(ft):
+def remove_default_assets(ctx, otags):
     """
-    generate refactored count dict for assets
-    ft: path_to_output_deck
+    remove duplicate tags from ctx['pxr_relations']
     """
-    for i in os.walk(ft):
-        pass
-        
+    pxr_relations = ctx['pxr_relations']
+    for k in pxr_relations.keys():
+        if '/' not in k and k in otags:
+            del pxr_relations[k]
+    
+    ctx['pxr_relations'] = {**pxr_relations}
+    return ctx
+            
+
+def refactor_relations(ctx):
+    """
+    """
+    pxr_relations = ctx['pxr_relations']
+    refactored_fns = ctx['refactored_fns']
+    
+    for k,v in pxr_relations.items():
+        if 'ppt' in k:
+            name = refactored_fns[k].split('ppt')[-1]
+        else:
+            name = '../' + '/'.join (refactored_fns[k].split('/')[-2:])
+        v.set('Target', name)
+    return ctx
+    
+
+def refactor_rIds(ctx):
+    """
+    set refactored rId
+    """
+    lasts = ctx['lasts']
+    pxr_relations = ctx['pxr_relations']
+    max_rId = lasts['rId']
+    
+    for k,v in pxr_relations.items():
+        max_rId += 1
+        v.set ('Id', f"rId{str(max_rId)}")
+    
+    
+      
 
 def remove_default_files(ft):
     """
@@ -470,9 +504,8 @@ def build_content_types(ft, ctx):
     content_types = ctx["content_types"]
 
     tree1 = build_tree (inp_path)
-    root1 = tree1.getroot()
 
-    for relation in root1:
+    for relation in tree1.getroot():
         if 'Override' in relation.tag:
             attrib = relation.attrib['PartName'][1:] # /ppt/slides/slide1.xml
             try:
@@ -509,6 +542,31 @@ def build_properties(ft, ctx):
     return ctx
 
 
+def build_pxr_file(ft, ss, ctx):
+    """
+    """
+    refactored_fns = ctx['refactored_fns']
+    lasts = ctx['lasts']
+    
+    pxr = f"{ft}/ppt/_rels/presentation.xml.rels"
+    
+    pxr_relations = ctx["pxr_relations"]
+    ss = [f"slides/slide{s}.xml" for s in ss]
+    
+    root = build_tree(pxr).getroot()
+    
+    for relation in root:
+        target = relation.attrib['Target']
+        if 'slides/slide' not in target:
+            pxr_relations = {**pxr_relations, f'{ft}/{target}': relation}
+        elif target in ss:
+            pxr_relations = {**pxr_relations, f'{ft}/{target}': relation}
+    
+    ctx["pxr_relations"] = pxr_relations
+    
+    return ctx
+
+
 def apply_assets(ft, ctx):
     """
     creates all assets in the output deck 
@@ -526,8 +584,6 @@ def apply_assets(ft, ctx):
 def apply_rels(ft, k, v, ctx):
     """
     creates all rel files of assets in the output deck 
-
-
     """
     for k,v in ctx['rels'].items():
         # change the asset key to the next index per asset type
@@ -594,11 +650,11 @@ def apply_content_types(ft, ctx):
                 new_name = f"/{nm}"
             
             v.set('PartName', new_name)
-            modify_output_mxl(tree, v, v.tag)
+            modify_output_xml(tree, v, v.tag)
         else:
             # png
             # /ppt/presentation.xml
-            modify_output_mxl(tree, v, v.tag)
+            modify_output_xml(tree, v, v.tag)
     
     write_output_xml(tree, f)
     
@@ -631,7 +687,7 @@ def apply_properties(ft, properties):
                         for ele in root1.findall (relation):
                             root2.append(ele)
                 except IndexError:
-                    print("list index out of range")
+                    logger.debug(f"list index {i} out of range")
             elif i in sing_prop:
                 if i == 'presProps.xml':
                     uris = {}
@@ -655,7 +711,7 @@ def apply_properties(ft, properties):
                     
                     for k,v in uris.items():
                         if k not in out_lis:
-                            modify_output_mxl(tree2, v, ext_tag)
+                            modify_output_xml(tree2, v, ext_tag)
                             # tag1 = tree2.find(ext_tag)
                             # tag1.append(v)
 
@@ -664,6 +720,23 @@ def apply_properties(ft, properties):
             write_output_xml(tree1, f)
     
     return properties
+
+
+def apply_pres_files(ft, ctx):
+    """
+    """
+    pxr = f"{ft}/ppt/_rels/presentation.xml.rels"
+    
+    otags = []
+    
+    root = build_tree(pxr).getroot()
+    for relation in root:
+        otags.append(relation.attrib['Target'])
+    
+    ctx = remove_default_assets(ctx, otags)
+    ctx = refactor_relations(ctx)
+    
+    return ctx
 
 
 def process_message(msg, ctx):
@@ -687,8 +760,9 @@ def process_message(msg, ctx):
         ctx = build_assets_and_rels(s, ft, ctx)
         #rels = build_rels(ft, assets, rels, lasts)
     
-    content_types = build_content_types(ft, ctx)
-    properties = build_properties(ft, ctx)
+    ctx = build_content_types(ft, ctx)
+    ctx = build_properties(ft, ctx)
+    ctx = build_pxr_file(ft, ss, ctx)
 
     return ctx
 
@@ -699,16 +773,17 @@ def write_output(ft, ctx, output_deck):
 
     ctx = write_assets_and_rels(ft, ctx)
     ref_nm, ref_cnt = apply_assets(ft, ctx["assets"], ctx['refactored_cnt'])
-    ctx['refactored_name'] = {**ref_nm}
+    ctx['refactored_fns'] = {**ref_nm}
     ctx['refactored_count'] = {**ref_nm}
     
     ref_nm, ref_cnt = apply_rels(ft, ctx["rels"], ctx['refactored_name'], ctx['refactored_cnt'])
-    ctx['refactored_name'] = {**ref_nm}
+    ctx['refactored_fns'] = {**ref_nm}
     ctx['refactored_count'] = {**ref_nm}
     
     apply_content_types(ft, ctx)
     apply_properties(ft, ctx["properties"])
-    
+    apply_pres_files(ft, ctx)
+
     pack(ft, file=output_deck)
     close(ft)
     return output_deck
@@ -739,7 +814,8 @@ def render_deck_effect(ctx):
             "mandatory_assets": OrderedDict(),
             "rels": OrderedDict(),
             "content_types": OrderedDict(),
-            "properties": OrderedDict()})
+            "properties": OrderedDict(),
+            "pxr_relations": OrderedDict()})
 
         
         logger.debug(f"writing output deck to {output_deck}")
