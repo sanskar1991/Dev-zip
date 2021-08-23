@@ -11,13 +11,14 @@ from typing import OrderedDict
 from pptx import Presentation
 from functools import reduce
 from lxml import etree
-# from zipfile import ZipFile
-# from shutil import copyfile, rmtree, move, make_archive
 
 
 logger = logging.getLogger (__name__)
 
 fq_empty = "mob/beagle/test_resources/Empty.pptx"
+
+# /mnt/input
+# /mnt/output
 
 
 def base_name (fqfn) :
@@ -32,7 +33,7 @@ def base_name (fqfn) :
 
 def file_to_work_dir (fqfn) :
     """
-    returns /tmp/{fqfn}
+    returns path as /tmp/{fqfn}
     """
     l = ["tmp", base_name (fqfn)] # removed '/'
     return os.path.join (*l) 
@@ -41,7 +42,7 @@ def file_to_work_dir (fqfn) :
 def token_to_work_dir (ft) :
     """
     """
-    l = ["tmp", ft] # removed '/'
+    l = ["tmp", ft]
     return os.path.join (*l) 
 
 
@@ -56,6 +57,7 @@ def token_is_open (ft) :
 
 def file_is_open (fn) :
     """
+    checks for the dir existance
     """
     fp = file_to_work_dir (fn)
     if not os.path.exists (fp) :
@@ -74,19 +76,9 @@ def file_is_not_open (fn) :
 
 def unpack (fqfn) :
     """
-    **fqfn should be the full system path
-    unpack('C:/Users/RichaM/Documents/code/parse_task/tmp/Onboarding.pptx')
-
-    # fqfn = '/tmp/Onboarding' (error)
-    removed '/' from "file_to_work_dir"
-
+    takes a .pptx file name and unzips it
+    **fqfn should be the full system path of a pptx file
     fqfn: input deck name
-
-    fqfn : Onboarding
-    fp = /tmp/Onboarding 
-
-    fqfn : f"{base_path}/{presentation}/Onboarding.pptx"
-
     /mnt/input/{messsage-fn}
     """
     fp = file_is_not_open (fqfn) # /tmp/{fqfn}
@@ -98,6 +90,7 @@ def unpack (fqfn) :
 
 def pack (ft, *args, **kwargs) :
     """
+    performs zipping
     """
     fp = token_is_open (ft)
     d = kwargs.get ("file", ".".join ([ft, "pptx"]))
@@ -109,6 +102,7 @@ def pack (ft, *args, **kwargs) :
 
 def close (ft) :
     """
+    remove the input dir
     """
     fp = token_is_open (ft)
     shutil.rmtree (fp)
@@ -118,11 +112,10 @@ def close (ft) :
 
 def new(ft):
     """
-    create, move and unzip the empty output deck
-
+    creates and unzips the empty output deck
     "/tmp/x" -> /tmp/x.pptx
     """
-    fq_empty = f"/tmp/{path}"
+    fq_empty = f"/tmp/{ft}"
     # create
     prs = Presentation()
     prs.save(fq_empty)
@@ -134,10 +127,11 @@ def new(ft):
 
 def get_fld_f_names (asset):
     """
-    generates folder and file names
+    takes an asset name and folder and file name
+    asset: slides/_rels/slide2.xml.rels
     """
     sp = asset.split ('/')
-    if '_rels' in asset: # slides/_rels/slide2.xml.rels
+    if '_rels' in asset:
         f = sp[-1]
         fld = f'{sp[-3]}/{sp[-2]}'
     else:
@@ -146,23 +140,9 @@ def get_fld_f_names (asset):
     return fld, f
 
 
-def xml_to_dict (path):
-    """
-    convert xml file to dict
-    """
-    with open(path) as xml_file:
-        data_dict = xmltodict.parse(xml_file.read())
-        xml_file.close()
-    if isinstance(data_dict["Relationships"]["Relationship"], list):
-        data = sorted(data_dict["Relationships"]["Relationship"], key=lambda item: int(item['@Id'].split('Id')[1]))
-    else:
-        data = [data_dict["Relationships"]["Relationship"]]
-    return data
-
-
 def write_output_xml(tree, f):
     """
-    creates an XML file using the tree
+    creates an XML file using its tree and new file location as f
     """
     tree.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8', standalone=True)
     
@@ -171,7 +151,7 @@ def write_output_xml(tree, f):
 
 def modify_output_xml(tree, relation, rel_tag):
     """
-    update existing xml file
+    updates existing XML file
     """
     prev = tree.find(rel_tag)
     prev.addnext(relation)
@@ -186,7 +166,7 @@ def build_tree (path):
     """
     parser = etree.XMLParser(remove_blank_text=True)
     tree = etree.parse(path, parser)
-    # root = tree.getroot()    
+      
     return tree
 
 
@@ -227,9 +207,9 @@ def refactor_assets_and_rels(k, v, ctx):
     return ctx
 
 
-def remove_default_assets(ctx, otags):
+def rem_dupl_relations(ctx, otags):
     """
-    remove duplicate tags from ctx['pxr_relations']
+    remove duplicate relations from ctx['pxr_relations']
     """
     pxr_relations = ctx['pxr_relations']
     for k in pxr_relations.keys():
@@ -237,11 +217,13 @@ def remove_default_assets(ctx, otags):
             del pxr_relations[k]
     
     ctx['pxr_relations'] = {**pxr_relations}
+    
     return ctx
             
 
 def refactor_relations(ctx):
     """
+    refactors the relations by refactoring the asset names
     """
     pxr_relations = ctx['pxr_relations']
     refactored_fns = ctx['refactored_fns']
@@ -252,28 +234,26 @@ def refactor_relations(ctx):
         else:
             name = '../' + '/'.join (refactored_fns[k].split('/')[-2:])
         v.set('Target', name)
+    
     return ctx
     
 
 def refactor_rIds(ctx):
     """
-    set refactored rId
+    updates refactored rId
     """
     lasts = ctx['lasts']
     pxr_relations = ctx['pxr_relations']
     max_rId = lasts['rId']
     
-    for k,v in pxr_relations.items():
-        max_rId += 1
-        v.set ('Id', f"rId{str(max_rId)}")
+    itags = []
     
-    
-      
+    # in progress
+
 
 def remove_default_files(ft):
     """
-    remove all the default assets
-    return maximum rId
+    removes all the default assets and returns maximum rId
     """
     default = ['slideMasters', 'slideLayouts', 'theme']
     
@@ -282,13 +262,13 @@ def remove_default_files(ft):
             if 'slideMasters' in f or 'slideLayouts' in f or 'theme' in f:
                 os.remove(os.path.join(root, f))
 
-    
     return
 
 
 def assetfn_to_relfn(ft, fqfn):
     """
-    {ft}/customXml/item1.xml -> {ft}/customXml/_rels/item1.xml.rels
+    generates rel file name from asset name
+    {ft}/customXml/item1.xml    ->  {ft}/customXml/_rels/item1.xml.rels
     {ft}/ppt/slides/slide2.xml  ->  {ft}/ppt/slides/_rels/slide2.xml.rels
     """
     # if '/' in fqfn:
@@ -304,6 +284,7 @@ def assetfn_to_relfn(ft, fqfn):
 
 def relfn_to_assetfn(ft, fqfn):
     """
+    generates asset names from rel asset files
     {ft}/customXml/_rels/item1.xml.rels -> {ft}/customXml/item1.xml
     {ft}/ppt/slides/_rels/slide2.xml.rels -> {ft}/ppt/slides/slide2.xml
     """
@@ -318,6 +299,7 @@ def relfn_to_assetfn(ft, fqfn):
 
 def short_assetfn_to_long_assetfn(ft, short):
     """
+    shortens the default asset name
     ../customXml/item1.xml -> customXml/item1.xml
     slides/slide2.xml  -> /ppt/slides/slide2.xml
     ../slideLayout2.xml -> /ppt/slideLayout2.xml
@@ -333,7 +315,7 @@ def short_assetfn_to_long_assetfn(ft, short):
     return r
 
 
-def is_manadatory(i):
+def is_mandatory(i):
     """
     return true if asset should be copied
     """
@@ -346,10 +328,11 @@ def is_manadatory(i):
 
 
 def walk_asset_tree(ft, asset, ctx):
-    
+    """
+    walks asset tree and gathering all required assets
+    """
     rf = assetfn_to_relfn(ft, asset)
 
-    # assetfn = f"{ft}/ppt/{asset}"
     assetfn = short_assetfn_to_long_assetfn(ft, asset)
     assets = ctx["assets"]
     rels = ctx["rels"]
@@ -367,13 +350,10 @@ def walk_asset_tree(ft, asset, ctx):
 
     return ctx
 
-# /mnt/input
-# /mnt/output
-
 
 def next_index_for(type, lasts):
     """
-    
+    retruns the refactored asset value as per the type
     """
     current = lasts.get(type, 0)
     current = current + 1
@@ -383,9 +363,7 @@ def next_index_for(type, lasts):
 
 def refactor_content(k, v, ctx):
     """
-    refactoring content of the rel files
-    and then saving it
-    
+    refactors content of the rel files and then saving it
     refactored_fns = {'/tmp/Onboarding/ppt/media/image10.png': 'media/image5.png'}
     """
     refactored_fns = ctx['refactored_fns']
@@ -405,18 +383,23 @@ def refactor_content(k, v, ctx):
 
 
 def build_required_assets(ft, ctx):
+    """
+    gather all the required assets for mandatory assets
+    """
     pxr = f'{ft}/ppt/_rels/presentation.xml.rels'
     tree = build_tree (pxr)
     root = tree.getroot()
-    d = filter(is_manadatory, root)
+    d = filter(is_mandatory, root)
     
     for asset in d:
         ctx = walk_asset_tree(ft, asset, ctx)
+    
     return ctx
 
 
 def build_mandatory_assets(ft, ctx):
     """
+    gather all the mandatory assets
     """
     mand_assets_list = ['slideMasters', 'slideLayouts', 'theme']
     
@@ -438,18 +421,19 @@ def build_mandatory_assets(ft, ctx):
     return ctx
 
 
-#def build_assets(ft, pxr, assets, slide=None):
 def build_assets_and_rels(s, ft, ctx):
     """
+    gather all the assets and their rel files from input deck
+    
     assets = {fq-destination, file}
-    req:
-     assets (with all the files)
+    req: assets (with all the files)
     """
     s = f'slides/slide{str(s)}.xml'
     ctx = walk_asset_tree(ft, s, ctx)
 
     # if 'placeholder':
-    #     pass
+    #   # walk_asset_tree  
+    #   pass
     # else:
     #     tree = build_tree (pxr)
     #     root = tree.getroot()
@@ -493,9 +477,9 @@ def build_assets_and_rels(s, ft, ctx):
 
 def build_content_types(ft, ctx):
     """
-    add content_type of new assets in [Contant_Types].xml file
+    gather content_type of new assets of input deck
     
-    considering 'ft' as full system input deck path 
+    considering 'ft' as full system path of input deck
     """
 
     f = '[Content_Types].xml'
@@ -524,11 +508,14 @@ def build_content_types(ft, ctx):
             content_types = {**content_types, attrib: relation}
 
     ctx["content_types"] = content_types
+    
     return ctx
 
 
 def build_properties(ft, ctx):
-    
+    """
+    gather all the property files and their content
+    """
     inp_path = '/'.join([ft, 'ppt'])
     properties = ctx["properties"]
     
@@ -544,6 +531,7 @@ def build_properties(ft, ctx):
 
 def build_pxr_file(ft, ss, ctx):
     """
+    gathers relations of all the required assets
     """
     refactored_fns = ctx['refactored_fns']
     lasts = ctx['lasts']
@@ -622,6 +610,7 @@ def apply_rels(ft, k, v, ctx):
 
 def apply_mandatory_assets(ft, ctx):
     """
+    creates all mandatory assets in output deck
     """
     for k, v in ctx['mandatory_asset'].items():
         ctx = refactor_assets_and_rels(k, v, ctx)
@@ -631,7 +620,7 @@ def apply_mandatory_assets(ft, ctx):
 
 def apply_content_types(ft, ctx):
     """
-    need to perform refctoring of names before making changes in the output deck's file
+    adds content types of new assets
     """
     con = '[Content_Types].xml'
     f = '/'.join ([ft, con])
@@ -663,9 +652,8 @@ def apply_content_types(ft, ctx):
 
 def apply_properties(ft, properties):
     """
-    considering 'ft' as full system output deck's path
+    modifies property files to add new properties
     """
-    
     mergables = ['commentAuthors.xml', 'tableStyles.xml']
     sing_prop = ['viewProps.xml', 'presProps.xml']
     ignore = ['revisionInfo.xml']
@@ -712,9 +700,6 @@ def apply_properties(ft, properties):
                     for k,v in uris.items():
                         if k not in out_lis:
                             modify_output_xml(tree2, v, ext_tag)
-                            # tag1 = tree2.find(ext_tag)
-                            # tag1.append(v)
-
             write_output_xml(tree2, f)
         else:
             write_output_xml(tree1, f)
@@ -724,6 +709,7 @@ def apply_properties(ft, properties):
 
 def apply_pres_files(ft, ctx):
     """
+    adds new relations of assets in pxr file
     """
     pxr = f"{ft}/ppt/_rels/presentation.xml.rels"
     
@@ -732,21 +718,23 @@ def apply_pres_files(ft, ctx):
     root = build_tree(pxr).getroot()
     for relation in root:
         otags.append(relation.attrib['Target'])
-    
-    ctx = remove_default_assets(ctx, otags)
+    # remove_default_assets
+    ctx = rem_dupl_relations(ctx, otags)
     ctx = refactor_relations(ctx)
+    
+    # in progress
     
     return ctx
 
 
 def process_message(msg, ctx):
+    """
+    gathers all the assets and relations from all the input decks
+    """
     logger.debug(f"processing message {msg}")
     input_deck = f"/mnt/input/{msg['d']}"
     
     ft = unpack (input_deck)
-    
-    # ft: extracted input_deck dir (/tmp/{input_deck})
-    
     
     ss = msg.get("s", None)
     if not ss:
@@ -768,10 +756,14 @@ def process_message(msg, ctx):
 
 
 def write_output(ft, ctx, output_deck):
-    
+    """
+    writes into output deck 
+    """
     ctx = refactor_assets_and_rels(ctx)
 
-    ctx = write_assets_and_rels(ft, ctx)
+    # ctx = write_assets_and_rels(ft, ctx)
+    ctx = apply_assets(ft, ctx)
+    ctx = apply_rels(ft, ctx)
     ref_nm, ref_cnt = apply_assets(ft, ctx["assets"], ctx['refactored_cnt'])
     ctx['refactored_fns'] = {**ref_nm}
     ctx['refactored_count'] = {**ref_nm}
@@ -786,14 +778,15 @@ def write_output(ft, ctx, output_deck):
 
     pack(ft, file=output_deck)
     close(ft)
+    
     return output_deck
 
 
 def render_deck_effect(ctx):
     """
-    process msgs and write output deck to fqfn
+    process messages and writes output deck to fqfn
 
-    fqfn should be /mnt/output/{render_id}
+    fqfn: /mnt/output/{render_id}
     """
     msgs = ctx.get ("msgs", [])
     if not msgs:
